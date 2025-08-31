@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../services/auth_service.dart';
+import '../../../services/storage_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,6 +43,19 @@ class _LoginScreenState extends State<LoginScreen>
       curve: Curves.easeOutCubic,
     ));
     _animationController.forward();
+    _loadSavedCredentials();
+  }
+  
+  void _loadSavedCredentials() {
+    _rememberMe = StorageService.getRememberMe();
+    if (_rememberMe) {
+      final credentials = StorageService.getSavedCredentials();
+      if (credentials['email'] != null && credentials['password'] != null) {
+        _emailController.text = credentials['email']!;
+        _passwordController.text = credentials['password']!;
+      }
+    }
+    setState(() {});
   }
 
   @override
@@ -57,16 +72,45 @@ class _LoginScreenState extends State<LoginScreen>
         _isLoading = true;
       });
       
-      // Simulate login process
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        _isLoading = false;
-      });
-      
-      // Navigate to home screen
-      if (mounted) {
-        context.go(AppRoutes.home);
+      try {
+        final response = await AuthService.signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+        
+        if (response.user != null) {
+          // Handle remember me functionality
+          await StorageService.setRememberMe(_rememberMe);
+          if (_rememberMe) {
+            await StorageService.saveCredentials(
+              _emailController.text.trim(),
+              _passwordController.text,
+            );
+          } else {
+            await StorageService.clearCredentials();
+          }
+          
+          // Login successful, navigate to home
+          if (mounted) {
+            context.go(AppRoutes.home);
+          }
+        }
+      } catch (error) {
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: ${error.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -179,7 +223,7 @@ class _LoginScreenState extends State<LoginScreen>
                             if (value == null || value.isEmpty) {
                               return AppStrings.fieldRequired;
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(value)) {
+                            if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
                               return AppStrings.invalidEmail;
                             }
                             return null;

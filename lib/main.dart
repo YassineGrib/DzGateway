@@ -8,8 +8,14 @@ import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/auth/signup_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/profile/profile_screen.dart';
+import 'services/auth_service.dart';
+import 'services/storage_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthService.initialize();
+  await StorageService.initialize();
   runApp(const MyApp());
 }
 
@@ -100,29 +106,100 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// GoRouter Configuration
+// GoRouter Configuration with Custom Page Transitions
 final GoRouter _router = GoRouter(
   initialLocation: AppRoutes.onboarding,
   routes: [
     GoRoute(
       path: AppRoutes.onboarding,
-      builder: (context, state) => const OnboardingScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const OnboardingScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.login,
-      builder: (context, state) => const LoginScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const LoginScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.signup,
-      builder: (context, state) => const SignUpScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const SignUpScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.forgotPassword,
-      builder: (context, state) => const ForgotPasswordScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const ForgotPasswordScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.home,
-      builder: (context, state) => const HomeScreen(),
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const HomeScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.profile,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const ProfileScreen(),
+      ),
     ),
   ],
 );
+
+// Custom Page Transition Builder
+Page<dynamic> _buildPageWithTransition(
+  BuildContext context,
+  GoRouterState state,
+  Widget child,
+) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      // Slide transition from right to left
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      const curve = Curves.easeInOutCubic;
+
+      var tween = Tween(begin: begin, end: end).chain(
+        CurveTween(curve: curve),
+      );
+
+      var slideAnimation = animation.drive(tween);
+
+      // Fade transition
+      var fadeAnimation = Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(
+        parent: animation,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
+      ));
+
+      return SlideTransition(
+        position: slideAnimation,
+        child: FadeTransition(
+          opacity: fadeAnimation,
+          child: child,
+        ),
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 400),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
+  );
+}

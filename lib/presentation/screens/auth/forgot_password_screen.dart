@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -54,13 +55,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
         _isLoading = true;
       });
       
-      // Simulate sending reset email
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        _isLoading = false;
-        _emailSent = true;
-      });
+      try {
+        await AuthService.resetPassword(_emailController.text.trim());
+        
+        setState(() {
+          _isLoading = false;
+          _emailSent = true;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Password reset email sent! Please check your inbox.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } catch (error) {
+        setState(() {
+          _isLoading = false;
+        });
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send reset email: ${error.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -207,7 +231,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen>
                 if (value == null || value.isEmpty) {
                   return AppStrings.fieldRequired;
                 }
-                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(value)) {
+                if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
                   return AppStrings.invalidEmail;
                 }
                 return null;

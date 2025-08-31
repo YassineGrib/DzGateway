@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../../services/auth_service.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -63,16 +64,42 @@ class _SignUpScreenState extends State<SignUpScreen>
         _isLoading = true;
       });
       
-      // Simulate sign up process
-      await Future.delayed(const Duration(seconds: 2));
-      
-      setState(() {
-        _isLoading = false;
-      });
-      
-      // Navigate to home screen
-      if (mounted) {
-        context.go(AppRoutes.home);
+      try {
+        final response = await AuthService.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          fullName: _fullNameController.text.trim(),
+        );
+        
+        if (response.user != null) {
+          // Sign up successful
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Account created successfully! Please check your email to verify your account.'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            // Navigate to login screen
+            context.go(AppRoutes.login);
+          }
+        }
+      } catch (error) {
+        // Show error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Sign up failed: ${error.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -218,7 +245,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                             if (value == null || value.isEmpty) {
                               return AppStrings.fieldRequired;
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}\$').hasMatch(value)) {
+                            if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
                               return AppStrings.invalidEmail;
                             }
                             return null;

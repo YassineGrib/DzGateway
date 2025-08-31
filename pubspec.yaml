@@ -49,12 +49,18 @@ dependencies:
   # State management
   flutter_bloc: ^9.1.1
   
-  # Supabase integration
-  supabase_flutter: ^2.3.4
+  # Supabase for backend and authentication
+  supabase_flutter: ^2.8.0
   
   # Form validation
   flutter_form_builder: ^10.2.0
   form_builder_validators: ^11.2.0
+  
+  # Local storage for remember me functionality
+  shared_preferences: ^2.2.2
+  
+  # Image picker for profile pictures
+  image_picker: ^1.0.4
 
 dev_dependencies:
   flutter_test:
