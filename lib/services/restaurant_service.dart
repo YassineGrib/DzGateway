@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/restaurant_model.dart';
+import '../models/menu_item_model.dart';
 
 class RestaurantService {
   final SupabaseClient _supabase = Supabase.instance.client;
