@@ -16,8 +16,8 @@ class FavoriteService {
 
       await _supabase.from('user_favorites').insert({
         'user_id': user.id,
-        'item_type': itemType.name,
-        'item_id': itemId,
+        'entity_type': itemType.name,
+        'entity_id': itemId,
       });
 
       return true;
@@ -39,8 +39,8 @@ class FavoriteService {
           .from('user_favorites')
           .delete()
           .eq('user_id', user.id)
-          .eq('item_type', itemType.name)
-          .eq('item_id', itemId);
+          .eq('entity_type', itemType.name)
+          .eq('entity_id', itemId);
 
       return true;
     } catch (e) {
@@ -61,8 +61,8 @@ class FavoriteService {
           .from('user_favorites')
           .select('id')
           .eq('user_id', user.id)
-          .eq('item_type', itemType.name)
-          .eq('item_id', itemId)
+          .eq('entity_type', itemType.name)
+          .eq('entity_id', itemId)
           .maybeSingle();
 
       return response != null;
@@ -82,13 +82,13 @@ class FavoriteService {
 
       final favoriteIds = await _supabase
           .from('user_favorites')
-          .select('item_id')
+          .select('entity_id')
           .eq('user_id', user.id)
-          .eq('item_type', 'restaurant');
+          .eq('entity_type', 'restaurant');
 
       if (favoriteIds.isEmpty) return [];
 
-      final ids = favoriteIds.map((item) => item['item_id']).toList();
+      final ids = favoriteIds.map((item) => item['entity_id']).toList();
       
       final response = await _supabase
           .from('restaurants')
@@ -112,9 +112,9 @@ class FavoriteService {
 
       final favoriteIds = await _supabase
           .from('user_favorites')
-          .select('item_id')
+          .select('entity_id')
           .eq('user_id', user.id)
-          .eq('item_type', 'hotel');
+          .eq('entity_type', 'hotel');
 
       if (favoriteIds.isEmpty) return [];
 
@@ -146,7 +146,7 @@ class FavoriteService {
           .eq('user_id', user.id);
 
       if (itemType != null) {
-        query = query.eq('item_type', itemType.name);
+        query = query.eq('entity_type', itemType.name);
       }
 
       final response = await query;

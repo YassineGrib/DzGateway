@@ -15,7 +15,7 @@ BEGIN
     INSERT INTO hotels (
         name, description, address, city, wilaya, postal_code, phone, email, website,
         star_rating, price_range_min, price_range_max, rating, total_reviews,
-        check_in_time, check_out_time, latitude, longitude, is_active
+        check_in_time, check_out_time, latitude, longitude, cover_image, is_active
     ) VALUES (
         'فندق إيبيس سطيف',
         'فندق عصري في قلب مدينة سطيف يوفر إقامة مريحة للمسافرين من رجال الأعمال والسياح',
@@ -35,6 +35,7 @@ BEGIN
         '12:00',
         36.1919,
         5.4138,
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945',
         true
     ) RETURNING id INTO hotel_ibis_id;
     
@@ -42,7 +43,7 @@ BEGIN
     INSERT INTO hotels (
         name, description, address, city, wilaya, postal_code, phone, email, website,
         star_rating, price_range_min, price_range_max, rating, total_reviews,
-        check_in_time, check_out_time, latitude, longitude, is_active
+        check_in_time, check_out_time, latitude, longitude, cover_image, is_active
     ) VALUES (
         'فندق الهيلتون الجزائر',
         'فندق عالمي فاخر يقع في موقع استراتيجي مطل على خليج الجزائر، يوفر أرقى الخدمات والمرافق',
@@ -62,6 +63,7 @@ BEGIN
         '12:00',
         36.7628,
         3.0426,
+        'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa',
         true
     ) RETURNING id INTO hotel_hilton_id;
     
@@ -69,7 +71,7 @@ BEGIN
     INSERT INTO hotels (
         name, description, address, city, wilaya, postal_code, phone, email, website,
         star_rating, price_range_min, price_range_max, rating, total_reviews,
-        check_in_time, check_out_time, latitude, longitude, is_active
+        check_in_time, check_out_time, latitude, longitude, cover_image, is_active
     ) VALUES (
         'فندق الشيراتون الجزائر',
         'فندق دولي راقي يتميز بموقعه المتميز وخدماته الفاخرة، مثالي للإقامات التجارية والسياحية',
@@ -89,6 +91,7 @@ BEGIN
         '12:00',
         36.7456,
         3.0234,
+        'https://images.unsplash.com/photo-1564501049412-61c2a3083791',
         true
     ) RETURNING id INTO hotel_sheraton_id;
     
@@ -116,6 +119,7 @@ BEGIN
         '11:00',
         36.7694,
         3.0434,
+        'https://images.unsplash.com/photo-1455587734955-081b22074882',
         true
     ) RETURNING id INTO hotel_center_id;
     

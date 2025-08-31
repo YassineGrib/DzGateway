@@ -23,9 +23,9 @@ class Favorite {
       id: json['id'] as String,
       userId: json['user_id'] as String,
       itemType: FavoriteType.values.firstWhere(
-        (type) => type.name == json['item_type'] as String,
+        (type) => type.name == json['entity_type'] as String,
       ),
-      itemId: json['item_id'] as String,
+      itemId: json['entity_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -34,8 +34,8 @@ class Favorite {
     return {
       'id': id,
       'user_id': userId,
-      'item_type': itemType.name,
-      'item_id': itemId,
+      'entity_type': itemType.name,
+      'entity_id': itemId,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -43,8 +43,8 @@ class Favorite {
   Map<String, dynamic> toInsertJson() {
     return {
       'user_id': userId,
-      'item_type': itemType.name,
-      'item_id': itemId,
+      'entity_type': itemType.name,
+      'entity_id': itemId,
     };
   }
 
