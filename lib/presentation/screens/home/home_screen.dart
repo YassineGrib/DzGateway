@@ -7,8 +7,17 @@ import '../restaurants_screen.dart';
 import '../delivery_companies_screen.dart';
 import '../../../services/restaurant_service.dart';
 import '../../../services/hotel_service.dart';
+import '../../../services/transport_service.dart';
+import '../../../services/delivery_service.dart';
+import '../../../services/travel_agency_service.dart';
+import '../../../services/tourist_area_service.dart';
 import '../../../models/restaurant_model.dart';
 import '../../../models/hotel_model.dart';
+import '../../../models/transport_company_model.dart';
+import '../../../models/delivery_company_model.dart';
+import '../../../models/travel_agency_model.dart';
+import '../../../models/tourist_area_model.dart';
+import '../ai_trip/ai_trip_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,8 +29,17 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final RestaurantService _restaurantService = RestaurantService();
   final HotelService _hotelService = HotelService();
+  final TransportService _transportService = TransportService();
+  final DeliveryService _deliveryService = DeliveryService();
+  final TravelAgencyService _travelAgencyService = TravelAgencyService();
+  final TouristAreaService _touristAreaService = TouristAreaService();
+  
   List<Restaurant> _featuredRestaurants = [];
   List<Hotel> _featuredHotels = [];
+  List<TransportCompany> _featuredTransport = [];
+  List<DeliveryCompany> _featuredDelivery = [];
+  List<TravelAgency> _featuredTravelAgencies = [];
+  List<TouristArea> _featuredTouristAreas = [];
   bool _isLoading = true;
   
 
@@ -35,12 +53,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _loadFeaturedServices() async {
     try {
-      final restaurants = await _restaurantService.getTopRatedRestaurants(limit: 2);
+      // تحميل خدمة واحدة من كل فئة
+      final restaurants = await _restaurantService.getTopRatedRestaurants(limit: 1);
       final hotels = await _hotelService.getTopRatedHotels(limit: 1);
+      final transport = await _transportService.getAllTransportCompanies();
+      final delivery = await _deliveryService.getDeliveryCompanies();
+      final travelAgencies = await _travelAgencyService.getAllTravelAgencies();
+      final touristAreas = await TouristAreaService.getAllTouristAreas();
       
       setState(() {
         _featuredRestaurants = restaurants;
         _featuredHotels = hotels;
+        _featuredTransport = transport.take(1).toList();
+        _featuredDelivery = delivery.take(1).toList();
+        _featuredTravelAgencies = travelAgencies.take(1).toList();
+        _featuredTouristAreas = touristAreas.take(1).toList();
         _isLoading = false;
       });
     } catch (e) {
@@ -89,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     const SizedBox(height: AppSpacing.large),
                     
                     // AI Assistant Section
-                    _buildAIAssistantSection(),
+                    _buildAIAssistantSection(context),
                   ],
                 ),
               ),
@@ -436,206 +463,73 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 height: 200,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _featuredRestaurants.length + _featuredHotels.length,
+                  itemCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
                   itemBuilder: (context, index) {
+                    // تحديد نوع الخدمة بناءً على الفهرس
                     if (index < _featuredRestaurants.length) {
-                      final restaurant = _featuredRestaurants[index];
-                      return Container(
-                        width: 280,
-                        height: 220,
-                        margin: EdgeInsets.only(
-                          left: index == (_featuredRestaurants.length + _featuredHotels.length - 1) ? 0 : AppSpacing.medium,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.border.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEF4444).withOpacity(0.1),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(AppBorderRadius.medium),
-                                  topRight: Radius.circular(AppBorderRadius.medium),
-                                ),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.restaurant,
-                                  size: 60,
-                                  color: const Color(0xFFEF4444),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(AppSpacing.small),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          restaurant.name,
-                                          style: GoogleFonts.tajawal(
-                                            fontSize: AppFontSizes.medium,
-                                            color: AppColors.textPrimary,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.star,
-                                            size: 16,
-                                            color: AppColors.warning,
-                                          ),
-                                          const SizedBox(width: 2),
-                                          Text(
-                                            (restaurant.rating ?? 0.0).toStringAsFixed(1),
-                                            style: GoogleFonts.tajawal(
-                                              fontSize: AppFontSizes.small,
-                                              color: AppColors.textPrimary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Flexible(
-                                    child: Text(
-                                      restaurant.description ?? 'مطعم مميز',
-                                      style: GoogleFonts.tajawal(
-                                        fontSize: AppFontSizes.small,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      return _buildServiceCard(
+                        title: _featuredRestaurants[index].name,
+                        description: _featuredRestaurants[index].description ?? 'مطعم مميز',
+                        rating: _featuredRestaurants[index].rating ?? 0.0,
+                        icon: Icons.restaurant,
+                        color: const Color(0xFFEF4444),
+                        index: index,
+                        totalCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
+                      );
+                    } else if (index < _featuredRestaurants.length + _featuredHotels.length) {
+                      final hotelIndex = index - _featuredRestaurants.length;
+                      return _buildServiceCard(
+                        title: _featuredHotels[hotelIndex].name,
+                        description: _featuredHotels[hotelIndex].description ?? 'فندق مميز',
+                        rating: _featuredHotels[hotelIndex].rating ?? 0.0,
+                        icon: Icons.hotel,
+                        color: const Color(0xFF3B82F6),
+                        index: index,
+                        totalCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
+                      );
+                    } else if (index < _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length) {
+                      final transportIndex = index - _featuredRestaurants.length - _featuredHotels.length;
+                      return _buildServiceCard(
+                        title: _featuredTransport[transportIndex].name,
+                        description: _featuredTransport[transportIndex].description ?? 'شركة نقل موثوقة',
+                        rating: _featuredTransport[transportIndex].rating ?? 0.0,
+                        icon: Icons.directions_car,
+                        color: const Color(0xFF10B981),
+                        index: index,
+                        totalCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
+                      );
+                    } else if (index < _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length) {
+                      final deliveryIndex = index - _featuredRestaurants.length - _featuredHotels.length - _featuredTransport.length;
+                      return _buildServiceCard(
+                        title: _featuredDelivery[deliveryIndex].name,
+                        description: _featuredDelivery[deliveryIndex].description ?? 'خدمة توصيل سريعة',
+                        rating: _featuredDelivery[deliveryIndex].rating ?? 0.0,
+                        icon: Icons.delivery_dining,
+                        color: const Color(0xFFF59E0B),
+                        index: index,
+                        totalCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
+                      );
+                    } else if (index < _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length) {
+                      final travelIndex = index - _featuredRestaurants.length - _featuredHotels.length - _featuredTransport.length - _featuredDelivery.length;
+                      return _buildServiceCard(
+                        title: _featuredTravelAgencies[travelIndex].name,
+                        description: _featuredTravelAgencies[travelIndex].description ?? 'وكالة سفر متميزة',
+                        rating: _featuredTravelAgencies[travelIndex].rating ?? 0.0,
+                        icon: Icons.flight,
+                        color: const Color(0xFF8B5CF6),
+                        index: index,
+                        totalCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
                       );
                     } else {
-                      final hotelIndex = index - _featuredRestaurants.length;
-                      final hotel = _featuredHotels[hotelIndex];
-                      return Container(
-                        width: 280,
-                        height: 220,
-                        margin: EdgeInsets.only(
-                          left: index == (_featuredRestaurants.length + _featuredHotels.length - 1) ? 0 : AppSpacing.medium,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.border.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF3B82F6).withOpacity(0.1),
-                                borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(AppBorderRadius.medium),
-                                  topRight: Radius.circular(AppBorderRadius.medium),
-                                ),
-                              ),
-                              child: Center(
-                                child: Icon(
-                                  Icons.hotel,
-                                  size: 60,
-                                  color: const Color(0xFF3B82F6),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(AppSpacing.small),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          hotel.name,
-                                          style: GoogleFonts.tajawal(
-                                            fontSize: AppFontSizes.medium,
-                                            color: AppColors.textPrimary,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            Icons.star,
-                                            size: 16,
-                                            color: AppColors.warning,
-                                          ),
-                                          const SizedBox(width: 2),
-                                          Text(
-                                            (hotel.rating ?? 0.0).toStringAsFixed(1),
-                                            style: GoogleFonts.tajawal(
-                                              fontSize: AppFontSizes.small,
-                                              color: AppColors.textPrimary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Flexible(
-                                    child: Text(
-                                      hotel.description ?? 'فندق مميز',
-                                      style: GoogleFonts.tajawal(
-                                        fontSize: AppFontSizes.small,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      final touristIndex = index - _featuredRestaurants.length - _featuredHotels.length - _featuredTransport.length - _featuredDelivery.length - _featuredTravelAgencies.length;
+                      return _buildServiceCard(
+                        title: _featuredTouristAreas[touristIndex].name,
+                        description: _featuredTouristAreas[touristIndex].description ?? 'منطقة سياحية رائعة',
+                        rating: _featuredTouristAreas[touristIndex].rating ?? 0.0,
+                        icon: Icons.landscape,
+                        color: const Color(0xFF06B6D4),
+                        index: index,
+                        totalCount: _featuredRestaurants.length + _featuredHotels.length + _featuredTransport.length + _featuredDelivery.length + _featuredTravelAgencies.length + _featuredTouristAreas.length,
                       );
                     }
                   },
@@ -645,7 +539,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAIAssistantSection() {
+  Widget _buildAIAssistantSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -678,26 +572,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               Row(
                 children: [
-                  Container(
+                  Image.asset(
+                    'assets/images/ai-assistant.png',
                     width: 50,
                     height: 50,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primary,
-                          AppColors.accent,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-                    ),
-                  
-                    child: const Icon(
-                      Icons.smart_toy,
-                      color: Colors.white,
-                      size: 28,
-                    ),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.smart_toy,
+                        color: AppColors.primary,
+                        size: 50,
+                      );
+                    },
                   ),
                   const SizedBox(width: AppSpacing.medium),
 
@@ -751,7 +637,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    context.push(AppRoutes.aiTrip);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AiTripScreen(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -853,6 +744,114 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildServiceCard({
+    required String title,
+    required String description,
+    required double rating,
+    required IconData icon,
+    required Color color,
+    required int index,
+    required int totalCount,
+  }) {
+    return Container(
+      width: 280,
+      height: 220,
+      margin: EdgeInsets.only(
+        left: index == (totalCount - 1) ? 0 : AppSpacing.medium,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.border.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(AppBorderRadius.medium),
+                topRight: Radius.circular(AppBorderRadius.medium),
+              ),
+            ),
+            child: Center(
+              child: Icon(
+                icon,
+                size: 60,
+                color: color,
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.small),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: GoogleFonts.tajawal(
+                          fontSize: AppFontSizes.medium,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: AppColors.warning,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          rating.toStringAsFixed(1),
+                          style: GoogleFonts.tajawal(
+                            fontSize: AppFontSizes.small,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Flexible(
+                  child: Text(
+                    description,
+                    style: GoogleFonts.tajawal(
+                      fontSize: AppFontSizes.small,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

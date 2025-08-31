@@ -87,7 +87,7 @@ class _AiTripScreenState extends State<AiTripScreen> {
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
-          '🤖 مخطط الرحلات الذكي',
+          'مخطط الرحلات الذكي',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,

@@ -4,7 +4,7 @@ import '../../../services/travel_agency_service.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../widgets/unified_app_bar.dart';
 import '../../widgets/search_filter_widget.dart';
-import '../../widgets/advertisement_banner.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 
 class TravelAgenciesScreen extends StatefulWidget {
@@ -19,12 +19,10 @@ class _TravelAgenciesScreenState extends State<TravelAgenciesScreen> {
   List<TravelAgency> _allTravelAgencies = [];
   List<TravelAgency> _filteredTravelAgencies = [];
   List<String> _availablePriceRanges = [];
-  List<String> _availableOfferTypes = [];
   
   bool _isLoading = true;
   String _searchQuery = '';
   String? _selectedPriceRange;
-  String? _selectedOfferType;
   
   @override
   void initState() {
@@ -68,11 +66,9 @@ class _TravelAgenciesScreenState extends State<TravelAgenciesScreen> {
   Future<void> _loadFilterOptions() async {
     try {
       final priceRanges = await _travelAgencyService.getAvailablePriceRanges();
-      final offerTypes = await _travelAgencyService.getAvailableOfferTypes();
       
       setState(() {
         _availablePriceRanges = priceRanges;
-        _availableOfferTypes = offerTypes;
       });
     } catch (e) {
       // Handle error silently for filter options
@@ -96,192 +92,9 @@ class _TravelAgenciesScreenState extends State<TravelAgenciesScreen> {
     });
   }
 
-  void _onSearchChanged(String query) {
-    setState(() {
-      _searchQuery = query;
-    });
-    _filterTravelAgencies();
-  }
 
-  void _showFilterBottomSheet() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.6,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            // Handle bar
-            Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            // Title
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'تصفية النتائج',
-                style: GoogleFonts.tajawal(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Price Range Filter
-                    Text(
-                      'النطاق السعري',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _availablePriceRanges.map((range) {
-                        final isSelected = _selectedPriceRange == range;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedPriceRange = isSelected ? null : range;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF8B5CF6)
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? const Color(0xFF8B5CF6)
-                                    : Colors.grey[300]!,
-                              ),
-                            ),
-                            child: Text(
-                              range,
-                              style: GoogleFonts.tajawal(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-                    // Offer Type Filter
-                    Text(
-                      'نوع العرض',
-                      style: GoogleFonts.tajawal(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _availableOfferTypes.map((type) {
-                        final isSelected = _selectedOfferType == type;
-                        return GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _selectedOfferType = isSelected ? null : type;
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? const Color(0xFF8B5CF6)
-                                  : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? const Color(0xFF8B5CF6)
-                                    : Colors.grey[300]!,
-                              ),
-                            ),
-                            child: Text(
-                              type,
-                              style: GoogleFonts.tajawal(
-                                color: isSelected
-                                    ? Colors.white
-                                    : AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Apply Button
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _filterTravelAgencies();
-                    Navigator.pop(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B5CF6),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'تطبيق التصفية',
-                    style: GoogleFonts.tajawal(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -294,16 +107,6 @@ class _TravelAgenciesScreenState extends State<TravelAgenciesScreen> {
       ),
       body: Column(
         children: [
-          const AdvertisementBanner(adType: AdType.generic),
-          // Search and Filter
-          SearchFilterWidget(
-            onSearchChanged: (query) {
-              setState(() {
-                _searchQuery = query;
-              });
-            },
-            searchHint: 'ابحث عن وكالة سياحية...',
-          ),
           // Content
           Expanded(
             child: _isLoading
@@ -347,6 +150,30 @@ class _TravelAgenciesScreenState extends State<TravelAgenciesScreen> {
                       ),
           ),
         ],
+      ),
+      floatingActionButton: SearchFilterWidget(
+        onSearchChanged: (query) {
+          setState(() {
+            _searchQuery = query;
+          });
+          _filterTravelAgencies();
+        },
+        searchHint: 'ابحث عن وكالة سياحية...',
+        filterOptions: _availablePriceRanges.isNotEmpty ? ['الكل', ..._availablePriceRanges] : ['الكل'],
+        onFilterChanged: (filters) {
+          setState(() {
+            // Find the selected price range from the filters map
+            String? selectedRange;
+            for (String key in filters.keys) {
+              if (filters[key] == true && key != 'الكل') {
+                selectedRange = key;
+                break;
+              }
+            }
+            _selectedPriceRange = selectedRange;
+          });
+          _filterTravelAgencies();
+        },
       ),
     );
   }

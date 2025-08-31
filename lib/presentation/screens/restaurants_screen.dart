@@ -12,7 +12,7 @@ import '../../services/menu_service.dart';
 import '../../core/constants/app_constants.dart';
 import '../widgets/unified_app_bar.dart';
 import '../widgets/search_filter_widget.dart';
-import '../widgets/advertisement_banner.dart';
+
 
 class RestaurantsScreen extends StatefulWidget {
   const RestaurantsScreen({super.key});
@@ -172,7 +172,6 @@ class _RestaurantsScreenState extends State<RestaurantsScreen>
       ),
       body: Column(
         children: [
-          const AdvertisementBanner(adType: AdType.yalledin),
           Expanded(
             child: TabBarView(
               controller: _tabController,

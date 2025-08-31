@@ -5,7 +5,7 @@ import '../../../services/hotel_service.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../widgets/unified_app_bar.dart';
 import '../../widgets/search_filter_widget.dart';
-import '../../widgets/advertisement_banner.dart';
+
 
 class HotelsScreen extends StatefulWidget {
   const HotelsScreen({super.key});
@@ -156,7 +156,6 @@ class _HotelsScreenState extends State<HotelsScreen> {
       ),
       body: Column(
         children: [
-          const AdvertisementBanner(adType: AdType.generic),
           // Content
           Expanded(
             child: _isLoading

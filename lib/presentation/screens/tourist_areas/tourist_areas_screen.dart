@@ -3,6 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../models/tourist_area_model.dart';
 import '../../../services/tourist_area_service.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../widgets/unified_app_bar.dart';
+
+import '../../widgets/search_filter_widget.dart';
 
 class TouristAreasScreen extends StatefulWidget {
   const TouristAreasScreen({Key? key}) : super(key: key);
@@ -19,7 +22,6 @@ class _TouristAreasScreenState extends State<TouristAreasScreen>
   List<TouristArea> _setifAreas = [];
   bool _isLoading = true;
   String? _error;
-  final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
   @override
@@ -32,7 +34,6 @@ class _TouristAreasScreenState extends State<TouristAreasScreen>
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -90,17 +91,9 @@ class _TouristAreasScreenState extends State<TouristAreasScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'المناطق السياحية',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        centerTitle: true,
+      appBar: UnifiedAppBar(
+        pageType: PageType.tourism,
+        title: 'المناطق السياحية',
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -116,52 +109,6 @@ class _TouristAreasScreenState extends State<TouristAreasScreen>
       ),
       body: Column(
         children: [
-          // شريط البحث
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-              ),
-            ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
-              decoration: InputDecoration(
-                hintText: 'ابحث عن منطقة سياحية...',
-                hintStyle: TextStyle(color: Colors.grey[400]),
-                prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear, color: Colors.grey[400]),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _searchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-            ),
-          ),
-          
           // المحتوى الرئيسي
           Expanded(
             child: _isLoading
@@ -232,6 +179,17 @@ class _TouristAreasScreenState extends State<TouristAreasScreen>
           ),
         ],
       ),
+      floatingActionButton: SearchFilterWidget(
+        onSearchChanged: (query) {
+          setState(() {
+            _searchQuery = query;
+          });
+        },
+        onFilterChanged: (filters) {
+          // يمكن إضافة منطق الفلترة هنا لاحقاً
+        },
+        searchHint: 'ابحث عن منطقة سياحية...',
+      ),
     );
   }
 
@@ -261,7 +219,6 @@ class _TouristAreasScreenState extends State<TouristAreasScreen>
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () {
-                  _searchController.clear();
                   setState(() {
                     _searchQuery = '';
                   });
