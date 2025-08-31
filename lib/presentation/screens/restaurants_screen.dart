@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../models/restaurant_model.dart';
 import '../../models/menu_item_model.dart';
+import '../../models/favorite_model.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/menu_service.dart';
@@ -98,14 +99,14 @@ class _RestaurantsScreenState extends State<RestaurantsScreen>
     try {
       bool success;
       if (_favoriteRestaurants.contains(restaurantId)) {
-        success = await _favoriteService.removeFromFavorites(restaurantId);
+        success = await _favoriteService.removeFromFavorites(restaurantId, FavoriteType.restaurant);
         if (success) {
           setState(() {
             _favoriteRestaurants.remove(restaurantId);
           });
         }
       } else {
-        success = await _favoriteService.addToFavorites(restaurantId);
+        success = await _favoriteService.addToFavorites(restaurantId, FavoriteType.restaurant);
         if (success) {
           setState(() {
             _favoriteRestaurants.add(restaurantId);
@@ -771,7 +772,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
 
   Future<void> _checkFavoriteStatus() async {
     try {
-      final isFavorite = await _favoriteService.isFavorite(widget.restaurant.id);
+      final isFavorite = await _favoriteService.isFavorite(widget.restaurant.id, FavoriteType.restaurant);
       setState(() {
         _isFavorite = isFavorite;
       });
@@ -782,7 +783,7 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen>
 
   Future<void> _toggleFavorite() async {
     try {
-      final success = await _favoriteService.toggleFavorite(widget.restaurant.id);
+      final success = await _favoriteService.toggleFavorite(widget.restaurant.id, FavoriteType.restaurant);
       if (success) {
         setState(() {
           _isFavorite = !_isFavorite;

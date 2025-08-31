@@ -1,0 +1,192 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/delivery_company_model.dart';
+
+class DeliveryService {
+  final SupabaseClient _supabase = Supabase.instance.client;
+
+  // Get all delivery companies
+  Future<List<DeliveryCompany>> getDeliveryCompanies({
+    String? searchQuery,
+    String? wilaya,
+    String? deliveryTimeFilter,
+  }) async {
+    try {
+      var query = _supabase
+          .from('delivery_companies')
+          .select('''
+            *,
+            delivery_coverage_areas(*),
+            delivery_payment_methods(*),
+            delivery_company_images(*)
+          ''')
+          .eq('is_active', true)
+          .order('rating', ascending: false);
+
+      // Apply search filter
+      // TODO: Implement proper search functionality
+      // if (searchQuery != null && searchQuery.isNotEmpty) {
+      //   query = query.textSearch('name', searchQuery);
+      // }
+
+      final response = await query;
+      
+      List<DeliveryCompany> companies = [];
+      for (var item in response) {
+        // Filter by wilaya if specified
+        if (wilaya != null && wilaya.isNotEmpty) {
+          final coverageAreas = item['delivery_coverage_areas'] as List?;
+          if (coverageAreas != null) {
+            final hasWilaya = coverageAreas.any((area) => 
+                area['wilaya']?.toString().toLowerCase() == wilaya.toLowerCase());
+            if (!hasWilaya) continue;
+          }
+        }
+
+        companies.add(DeliveryCompany.fromJson(item));
+      }
+
+      return companies;
+    } catch (e) {
+      throw Exception('فشل في جلب بيانات شركات التوصيل: $e');
+    }
+  }
+
+  // Get delivery company by ID
+  Future<DeliveryCompany?> getDeliveryCompanyById(String id) async {
+    try {
+      final response = await _supabase
+          .from('delivery_companies')
+          .select('''
+            *,
+            delivery_coverage_areas(*),
+            delivery_payment_methods(*),
+            delivery_company_images(*)
+          ''')
+          .eq('id', id)
+          .eq('is_active', true)
+          .single();
+
+      return DeliveryCompany.fromJson(response);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get coverage areas for a company
+  Future<List<DeliveryCoverageArea>> getCoverageAreas(String companyId) async {
+    try {
+      final response = await _supabase
+          .from('delivery_coverage_areas')
+          .select('*')
+          .eq('company_id', companyId)
+          .eq('is_active', true)
+          .order('area_name');
+
+      return response
+          .map<DeliveryCoverageArea>((item) => DeliveryCoverageArea.fromJson(item))
+          .toList();
+    } catch (e) {
+      throw Exception('فشل في جلب مناطق التغطية: $e');
+    }
+  }
+
+  // Get payment methods for a company
+  Future<List<DeliveryPaymentMethod>> getPaymentMethods(String companyId) async {
+    try {
+      final response = await _supabase
+          .from('delivery_payment_methods')
+          .select('*')
+          .eq('company_id', companyId)
+          .eq('is_active', true)
+          .order('method_name');
+
+      return response
+          .map<DeliveryPaymentMethod>((item) => DeliveryPaymentMethod.fromJson(item))
+          .toList();
+    } catch (e) {
+      throw Exception('فشل في جلب طرق الدفع: $e');
+    }
+  }
+
+  // Get company images
+  Future<List<DeliveryCompanyImage>> getCompanyImages(String companyId) async {
+    try {
+      final response = await _supabase
+          .from('delivery_company_images')
+          .select('*')
+          .eq('company_id', companyId)
+          .order('display_order');
+
+      return response
+          .map<DeliveryCompanyImage>((item) => DeliveryCompanyImage.fromJson(item))
+          .toList();
+    } catch (e) {
+      throw Exception('فشل في جلب صور الشركة: $e');
+    }
+  }
+
+  // Get unique wilaya list from coverage areas
+  Future<List<String>> getAvailableWilayas() async {
+    try {
+      final response = await _supabase
+          .from('delivery_coverage_areas')
+          .select('wilaya')
+          .eq('is_active', true)
+          .not('wilaya', 'is', null);
+
+      final wilayas = response
+          .map<String>((item) => item['wilaya'] as String)
+          .where((wilaya) => wilaya.isNotEmpty)
+          .toSet()
+          .toList();
+
+      wilayas.sort();
+      return wilayas;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Create new delivery company (for admin/owner)
+  Future<DeliveryCompany> createDeliveryCompany(DeliveryCompany company) async {
+    try {
+      final response = await _supabase
+          .from('delivery_companies')
+          .insert(company.toJson())
+          .select()
+          .single();
+
+      return DeliveryCompany.fromJson(response);
+    } catch (e) {
+      throw Exception('فشل في إنشاء شركة التوصيل: $e');
+    }
+  }
+
+  // Update delivery company
+  Future<DeliveryCompany> updateDeliveryCompany(DeliveryCompany company) async {
+    try {
+      final response = await _supabase
+          .from('delivery_companies')
+          .update(company.toJson())
+          .eq('id', company.id)
+          .select()
+          .single();
+
+      return DeliveryCompany.fromJson(response);
+    } catch (e) {
+      throw Exception('فشل في تحديث شركة التوصيل: $e');
+    }
+  }
+
+  // Delete delivery company
+  Future<void> deleteDeliveryCompany(String id) async {
+    try {
+      await _supabase
+          .from('delivery_companies')
+          .delete()
+          .eq('id', id);
+    } catch (e) {
+      throw Exception('فشل في حذف شركة التوصيل: $e');
+    }
+  }
+}

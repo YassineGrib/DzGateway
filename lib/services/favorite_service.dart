@@ -1,12 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/favorite_model.dart';
 import '../models/restaurant_model.dart';
+import '../models/hotel_model.dart';
 
 class FavoriteService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // إضافة مطعم إلى المفضلة
-  Future<bool> addToFavorites(String restaurantId) async {
+  // إضافة عنصر إلى المفضلة (مطعم أو فندق)
+  Future<bool> addToFavorites(String itemId, FavoriteType itemType) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
@@ -15,18 +16,19 @@ class FavoriteService {
 
       await _supabase.from('user_favorites').insert({
         'user_id': user.id,
-        'restaurant_id': restaurantId,
+        'item_type': itemType.name,
+        'item_id': itemId,
       });
 
       return true;
     } catch (e) {
-      print('خطأ في إضافة المطعم إلى المفضلة: $e');
+      print('خطأ في إضافة العنصر إلى المفضلة: $e');
       return false;
     }
   }
 
-  // إزالة مطعم من المفضلة
-  Future<bool> removeFromFavorites(String restaurantId) async {
+  // إزالة عنصر من المفضلة
+  Future<bool> removeFromFavorites(String itemId, FavoriteType itemType) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
@@ -37,17 +39,18 @@ class FavoriteService {
           .from('user_favorites')
           .delete()
           .eq('user_id', user.id)
-          .eq('restaurant_id', restaurantId);
+          .eq('item_type', itemType.name)
+          .eq('item_id', itemId);
 
       return true;
     } catch (e) {
-      print('خطأ في إزالة المطعم من المفضلة: $e');
+      print('خطأ في إزالة العنصر من المفضلة: $e');
       return false;
     }
   }
 
-  // التحقق من وجود مطعم في المفضلة
-  Future<bool> isFavorite(String restaurantId) async {
+  // التحقق من وجود عنصر في المفضلة
+  Future<bool> isFavorite(String itemId, FavoriteType itemType) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
@@ -58,7 +61,8 @@ class FavoriteService {
           .from('user_favorites')
           .select('id')
           .eq('user_id', user.id)
-          .eq('restaurant_id', restaurantId)
+          .eq('item_type', itemType.name)
+          .eq('item_id', itemId)
           .maybeSingle();
 
       return response != null;
@@ -76,54 +80,76 @@ class FavoriteService {
         throw Exception('المستخدم غير مسجل الدخول');
       }
 
-      final response = await _supabase
+      final favoriteIds = await _supabase
           .from('user_favorites')
-          .select('''
-            restaurants (
-              id,
-              name,
-              address,
-              latitude,
-              longitude,
-              phone,
-              description,
-              cover_image,
-              rating,
-              total_reviews,
-              is_active,
-              created_at,
-              updated_at
-            )
-          ''')
-          .eq('user_id', user.id);
+          .select('item_id')
+          .eq('user_id', user.id)
+          .eq('item_type', 'restaurant');
 
-      final List<Restaurant> restaurants = [];
-      for (final item in response) {
-        if (item['restaurants'] != null) {
-          restaurants.add(Restaurant.fromJson(item['restaurants']));
-        }
-      }
+      if (favoriteIds.isEmpty) return [];
 
-      return restaurants;
+      final ids = favoriteIds.map((item) => item['item_id']).toList();
+      
+      final response = await _supabase
+          .from('restaurants')
+          .select('*')
+          .inFilter('id', ids);
+
+      return response.map<Restaurant>((json) => Restaurant.fromJson(json)).toList();
     } catch (e) {
       print('خطأ في جلب المطاعم المفضلة: $e');
       return [];
     }
   }
 
-  // جلب عدد المطاعم المفضلة للمستخدم
-  Future<int> getFavoritesCount() async {
+  // جلب جميع الفنادق المفضلة للمستخدم
+  Future<List<Hotel>> getFavoriteHotels() async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        throw Exception('المستخدم غير مسجل الدخول');
+      }
+
+      final favoriteIds = await _supabase
+          .from('user_favorites')
+          .select('item_id')
+          .eq('user_id', user.id)
+          .eq('item_type', 'hotel');
+
+      if (favoriteIds.isEmpty) return [];
+
+      final ids = favoriteIds.map((item) => item['item_id']).toList();
+      
+      final response = await _supabase
+          .from('hotels')
+          .select('*')
+          .inFilter('id', ids);
+
+      return response.map<Hotel>((json) => Hotel.fromJson(json)).toList();
+    } catch (e) {
+      print('خطأ في جلب الفنادق المفضلة: $e');
+      return [];
+    }
+  }
+
+  // جلب عدد العناصر المفضلة للمستخدم
+  Future<int> getFavoritesCount({FavoriteType? itemType}) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
         return 0;
       }
 
-      final response = await _supabase
+      var query = _supabase
           .from('user_favorites')
           .select('id')
           .eq('user_id', user.id);
 
+      if (itemType != null) {
+        query = query.eq('item_type', itemType.name);
+      }
+
+      final response = await query;
       return (response as List).length;
     } catch (e) {
       print('خطأ في جلب عدد المفضلة: $e');
@@ -132,13 +158,13 @@ class FavoriteService {
   }
 
   // تبديل حالة المفضلة (إضافة أو إزالة)
-  Future<bool> toggleFavorite(String restaurantId) async {
+  Future<bool> toggleFavorite(String itemId, FavoriteType itemType) async {
     try {
-      final isFav = await isFavorite(restaurantId);
+      final isFav = await isFavorite(itemId, itemType);
       if (isFav) {
-        return await removeFromFavorites(restaurantId);
+        return await removeFromFavorites(itemId, itemType);
       } else {
-        return await addToFavorites(restaurantId);
+        return await addToFavorites(itemId, itemType);
       }
     } catch (e) {
       print('خطأ في تبديل المفضلة: $e');

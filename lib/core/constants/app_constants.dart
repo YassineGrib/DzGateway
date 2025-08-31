@@ -141,4 +141,8 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String hotels = '/hotels';
+  static const String hotelDetail = '/hotel-detail';
+  static const String transportCompanies = '/transport-companies';
+  static const String deliveryCompanies = '/delivery-companies';
 }

@@ -9,6 +9,9 @@ import 'presentation/screens/auth/signup_screen.dart';
 import 'presentation/screens/auth/forgot_password_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/profile/profile_screen.dart';
+import 'presentation/screens/hotels/hotels_screen.dart';
+import 'presentation/screens/transport_companies_screen.dart';
+import 'presentation/screens/delivery_companies_screen.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
 
@@ -156,6 +159,38 @@ final GoRouter _router = GoRouter(
         context,
         state,
         const ProfileScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.hotels,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const HotelsScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '${AppRoutes.hotelDetail}/:id',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        HotelDetailScreen(hotelId: state.pathParameters['id']!),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.transportCompanies,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const TransportCompaniesScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.deliveryCompanies,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const DeliveryCompaniesScreen(),
       ),
     ),
   ],

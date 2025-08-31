@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/restaurant_model.dart';
+import '../../models/favorite_model.dart';
 import '../../services/favorite_service.dart';
 import 'restaurants_screen.dart';
 
@@ -54,7 +55,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Future<void> _removeFromFavorites(String restaurantId) async {
     try {
-      final success = await _favoriteService.removeFromFavorites(restaurantId);
+      final success = await _favoriteService.removeFromFavorites(restaurantId, FavoriteType.restaurant);
       if (success) {
         setState(() {
           _favoriteRestaurants.removeWhere((r) => r.id == restaurantId);
@@ -199,7 +200,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ],
                       ),
                       
-                      if (restaurant.phone != null) ..[
+                      if (restaurant.phone != null) ...[
                         const SizedBox(height: 12),
                         Row(
                           children: [
@@ -220,7 +221,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         ),
                       ],
                       
-                      if (restaurant.description != null) ..[
+                      if (restaurant.description != null) ...[
                         const SizedBox(height: 20),
                         const Text(
                           'الوصف',
@@ -471,7 +472,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                     ],
                   ),
-                  if (restaurant.description != null) ..[
+                  if (restaurant.description != null) ...[
                     const SizedBox(height: 8),
                     Text(
                       restaurant.description!,

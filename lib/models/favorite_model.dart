@@ -1,13 +1,20 @@
+enum FavoriteType {
+  restaurant,
+  hotel,
+}
+
 class Favorite {
   final String id;
   final String userId;
-  final String restaurantId;
+  final FavoriteType itemType;
+  final String itemId;
   final DateTime createdAt;
 
   const Favorite({
     required this.id,
     required this.userId,
-    required this.restaurantId,
+    required this.itemType,
+    required this.itemId,
     required this.createdAt,
   });
 
@@ -15,7 +22,10 @@ class Favorite {
     return Favorite(
       id: json['id'] as String,
       userId: json['user_id'] as String,
-      restaurantId: json['restaurant_id'] as String,
+      itemType: FavoriteType.values.firstWhere(
+        (type) => type.name == json['item_type'] as String,
+      ),
+      itemId: json['item_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -24,7 +34,8 @@ class Favorite {
     return {
       'id': id,
       'user_id': userId,
-      'restaurant_id': restaurantId,
+      'item_type': itemType.name,
+      'item_id': itemId,
       'created_at': createdAt.toIso8601String(),
     };
   }
@@ -32,7 +43,8 @@ class Favorite {
   Map<String, dynamic> toInsertJson() {
     return {
       'user_id': userId,
-      'restaurant_id': restaurantId,
+      'item_type': itemType.name,
+      'item_id': itemId,
     };
   }
 
@@ -42,16 +54,17 @@ class Favorite {
     return other is Favorite &&
         other.id == id &&
         other.userId == userId &&
-        other.restaurantId == restaurantId;
+        other.itemType == itemType &&
+        other.itemId == itemId;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ userId.hashCode ^ restaurantId.hashCode;
+    return id.hashCode ^ userId.hashCode ^ itemType.hashCode ^ itemId.hashCode;
   }
 
   @override
   String toString() {
-    return 'Favorite(id: $id, userId: $userId, restaurantId: $restaurantId, createdAt: $createdAt)';
+    return 'Favorite(id: $id, userId: $userId, itemType: $itemType, itemId: $itemId, createdAt: $createdAt)';
   }
 }

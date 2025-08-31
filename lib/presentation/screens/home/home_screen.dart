@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../restaurants_screen.dart';
+import '../delivery_companies_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -242,7 +243,7 @@ class HomeScreen extends StatelessWidget {
               return Container(
                 width: 100,
                 margin: EdgeInsets.only(
-                  right: index == categories.length - 1 ? 0 : AppSpacing.medium,
+                  left: index == 0 ? 0 : AppSpacing.medium,
                 ),
                 child: _buildCategoryCard(
                   context: context,
@@ -273,6 +274,12 @@ class HomeScreen extends StatelessWidget {
               builder: (context) => const RestaurantsScreen(),
             ),
           );
+        } else if (title == AppStrings.hotels) {
+          context.push(AppRoutes.hotels);
+        } else if (title == AppStrings.transport) {
+          context.push(AppRoutes.transportCompanies);
+        } else if (title == AppStrings.delivery) {
+          context.push(AppRoutes.deliveryCompanies);
         } else {
           // TODO: Navigate to other category screens
         }

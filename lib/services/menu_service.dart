@@ -104,7 +104,8 @@ class MenuService {
           .select('*')
           .eq('restaurant_id', restaurantId)
           .eq('is_available', true)
-          .ilike('name', '%$query%')
+          // TODO: Fix search functionality
+           // .textSearch('name', query)
           .order('name', ascending: true);
 
       return (response as List)

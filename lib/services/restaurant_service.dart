@@ -37,7 +37,8 @@ class RestaurantService {
             restaurant_images(*)
           ''')
           .eq('is_active', true)
-          .ilike('address', '%$location%')
+          // TODO: Fix search functionality
+          // .textSearch('address', location)
           .order('rating', ascending: false);
 
       return (response as List)
@@ -79,7 +80,8 @@ class RestaurantService {
             restaurant_images(*)
           ''')
           .eq('is_active', true)
-          .or('name.ilike.%$query%,description.ilike.%$query%')
+          // TODO: Fix search functionality
+          // .textSearch('name,description', query)
           .order('rating', ascending: false);
 
       return (response as List)
