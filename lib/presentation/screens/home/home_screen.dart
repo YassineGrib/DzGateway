@@ -5,9 +5,50 @@ import '../../../core/constants/app_constants.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../restaurants_screen.dart';
 import '../delivery_companies_screen.dart';
+import '../../../services/restaurant_service.dart';
+import '../../../services/hotel_service.dart';
+import '../../../models/restaurant_model.dart';
+import '../../../models/hotel_model.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  final RestaurantService _restaurantService = RestaurantService();
+  final HotelService _hotelService = HotelService();
+  List<Restaurant> _featuredRestaurants = [];
+  List<Hotel> _featuredHotels = [];
+  bool _isLoading = true;
+  
+
+  final String _welcomeText = 'اكتشف أفضل الخدمات والمرافق في جميع أنحاء الجزائر';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeaturedServices();
+  }
+
+  Future<void> _loadFeaturedServices() async {
+    try {
+      final restaurants = await _restaurantService.getTopRatedRestaurants(limit: 2);
+      final hotels = await _hotelService.getTopRatedHotels(limit: 1);
+      
+      setState(() {
+        _featuredRestaurants = restaurants;
+        _featuredHotels = hotels;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +88,8 @@ class HomeScreen extends StatelessWidget {
                     
                     const SizedBox(height: AppSpacing.large),
                     
-                    // Recent Activity Section
-                    _buildRecentActivitySection(),
+                    // AI Assistant Section
+                    _buildAIAssistantSection(),
                   ],
                 ),
               ),
@@ -144,7 +185,7 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.small),
           Text(
-            'اكتشف أفضل الخدمات والمرافق في جميع أنحاء الجزائر',
+            _welcomeText,
             style: GoogleFonts.tajawal(
               fontSize: AppFontSizes.medium,
               color: AppColors.textSecondary,
@@ -218,11 +259,6 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.landscape,
         'color': const Color(0xFF06B6D4),
       },
-      // {
-      //   'title': AppStrings.aiTrip,
-      //   'icon': Icons.smart_toy,
-      //   'color': const Color(0xFF9333EA),
-      // },
     ];
     
     return Column(
@@ -236,28 +272,29 @@ class HomeScreen extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        // const SizedBox(height: AppSpacing.medium),
+        const SizedBox(height: AppSpacing.medium),
         
-        // Grid Category Cards
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: AppSpacing.large,
-            mainAxisSpacing: AppSpacing.large,
-            childAspectRatio: 1.0,
+        // Horizontal Scrollable Category Cards
+        SizedBox(
+          height: 80,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            itemBuilder: (context, index) {
+              final category = categories[index];
+              return Container(
+                margin: EdgeInsets.only(
+                  left: index == categories.length - 1 ? 0 : AppSpacing.medium,
+                ),
+                child: _buildCategoryCard(
+                  context: context,
+                  title: category['title'] as String,
+                  icon: category['icon'] as IconData,
+                  color: category['color'] as Color,
+                ),
+              );
+            },
           ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return _buildCategoryCard(
-              context: context,
-              title: category['title'] as String,
-              icon: category['icon'] as IconData,
-              color: category['color'] as Color,
-            );
-          },
         ),
       ],
     );
@@ -290,8 +327,16 @@ class HomeScreen extends StatelessWidget {
         }
       },
       child: Container(
+        width: 100,
         decoration: BoxDecoration(
-          color: color,
+          gradient: LinearGradient(
+            colors: [
+              AppColors.primary.withOpacity(0.1),
+              AppColors.accent.withOpacity(0.05),
+            ],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
         ),
         child: Column(
@@ -299,17 +344,17 @@ class HomeScreen extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: Colors.white,
-              size: 28,
+              color: color,
+              size: 24,
             ),
-            const SizedBox(height: AppSpacing.small),
+            const SizedBox(height: AppSpacing.extraSmall),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4.0),
               child: Text(
                 title,
                 style: GoogleFonts.tajawal(
                   fontSize: AppFontSizes.extraSmall,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
                 textAlign: TextAlign.center,
@@ -341,6 +386,7 @@ class HomeScreen extends StatelessWidget {
             break;
           case 3:
             // Navigate to AI
+            context.push(AppRoutes.aiTrip);
             break;
           case 4:
             // Navigate to orders
@@ -382,144 +428,229 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.medium),
-        SizedBox(
-          height: 200,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: 3,
-            itemBuilder: (context, index) {
-              final services = [
-                {
-                  'title': 'مطعم الأصالة',
-                  'subtitle': 'أطباق جزائرية تقليدية',
-                  'rating': '4.8',
-                  'image': Icons.restaurant,
-                  'color': const Color(0xFFEF4444),
-                },
-                {
-                  'title': 'فندق الجزائر الكبير',
-                  'subtitle': 'إقامة فاخرة في وسط العاصمة',
-                  'rating': '4.9',
-                  'image': Icons.hotel,
-                  'color': const Color(0xFF3B82F6),
-                },
-                {
-                  'title': 'رحلات الصحراء',
-                  'subtitle': 'اكتشف جمال الصحراء الجزائرية',
-                  'rating': '4.7',
-                  'image': Icons.landscape,
-                  'color': const Color(0xFF06B6D4),
-                },
-              ];
-              
-              final service = services[index];
-              return Container(
-                width: 280,
-                height: 235,
-                margin: EdgeInsets.only(
-                  left: index == services.length - 1 ? 0 : AppSpacing.medium,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.border.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: (service['color'] as Color).withOpacity(0.1),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(AppBorderRadius.medium),
-                          topRight: Radius.circular(AppBorderRadius.medium),
+        _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : SizedBox(
+                height: 200,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _featuredRestaurants.length + _featuredHotels.length,
+                  itemBuilder: (context, index) {
+                    if (index < _featuredRestaurants.length) {
+                      final restaurant = _featuredRestaurants[index];
+                      return Container(
+                        width: 280,
+                        height: 220,
+                        margin: EdgeInsets.only(
+                          left: index == (_featuredRestaurants.length + _featuredHotels.length - 1) ? 0 : AppSpacing.medium,
                         ),
-                      ),
-                      child: Center(
-                        child: Icon(
-                          service['image'] as IconData,
-                          size: 60,
-                          color: service['color'] as Color,
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.border.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(AppSpacing.medium),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  service['title'] as String,
-                                  style: GoogleFonts.tajawal(
-                                    fontSize: AppFontSizes.medium,
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444).withOpacity(0.1),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(AppBorderRadius.medium),
+                                  topRight: Radius.circular(AppBorderRadius.medium),
                                 ),
                               ),
-                              Row(
+                              child: Center(
+                                child: Icon(
+                                  Icons.restaurant,
+                                  size: 60,
+                                  color: const Color(0xFFEF4444),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(AppSpacing.small),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(
-                                    Icons.star,
-                                    size: 16,
-                                    color: AppColors.warning,
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          restaurant.name,
+                                          style: GoogleFonts.tajawal(
+                                            fontSize: AppFontSizes.medium,
+                                            color: AppColors.textPrimary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.star,
+                                            size: 16,
+                                            color: AppColors.warning,
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            (restaurant.rating ?? 0.0).toStringAsFixed(1),
+                                            style: GoogleFonts.tajawal(
+                                              fontSize: AppFontSizes.small,
+                                              color: AppColors.textPrimary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    service['rating'] as String,
-                                    style: GoogleFonts.tajawal(
-                                      fontSize: AppFontSizes.small,
-                                      color: AppColors.textPrimary,
-                                      fontWeight: FontWeight.w500,
+                                  const SizedBox(height: 4),
+                                  Flexible(
+                                    child: Text(
+                                      restaurant.description ?? 'مطعم مميز',
+                                      style: GoogleFonts.tajawal(
+                                        fontSize: AppFontSizes.small,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                                 ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSpacing.extraSmall),
-                          Text(
-                            service['subtitle'] as String,
-                            style: GoogleFonts.tajawal(
-                              fontSize: AppFontSizes.small,
-                              color: AppColors.textSecondary,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                          ],
+                        ),
+                      );
+                    } else {
+                      final hotelIndex = index - _featuredRestaurants.length;
+                      final hotel = _featuredHotels[hotelIndex];
+                      return Container(
+                        width: 280,
+                        height: 220,
+                        margin: EdgeInsets.only(
+                          left: index == (_featuredRestaurants.length + _featuredHotels.length - 1) ? 0 : AppSpacing.medium,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.border.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF3B82F6).withOpacity(0.1),
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(AppBorderRadius.medium),
+                                  topRight: Radius.circular(AppBorderRadius.medium),
+                                ),
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.hotel,
+                                  size: 60,
+                                  color: const Color(0xFF3B82F6),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(AppSpacing.small),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          hotel.name,
+                                          style: GoogleFonts.tajawal(
+                                            fontSize: AppFontSizes.medium,
+                                            color: AppColors.textPrimary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.star,
+                                            size: 16,
+                                            color: AppColors.warning,
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            (hotel.rating ?? 0.0).toStringAsFixed(1),
+                                            style: GoogleFonts.tajawal(
+                                              fontSize: AppFontSizes.small,
+                                              color: AppColors.textPrimary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Flexible(
+                                    child: Text(
+                                      hotel.description ?? 'فندق مميز',
+                                      style: GoogleFonts.tajawal(
+                                        fontSize: AppFontSizes.small,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+                  },
                 ),
-              );
-            },
-          ),
-        ),
+              ),
       ],
     );
   }
 
-  Widget _buildRecentActivitySection() {
+  Widget _buildAIAssistantSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'النشاط الأخير',
+          'المساعد الذكي',
           style: GoogleFonts.tajawal(
             fontSize: AppFontSizes.large,
             color: AppColors.textPrimary,
@@ -528,33 +659,116 @@ class HomeScreen extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.medium),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.medium),
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.large),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.primary.withOpacity(0.1),
+                AppColors.accent.withOpacity(0.05),
+              ],
+            ),
             borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.primary.withOpacity(0.2)),
           ),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildActivityItem(
-                icon: Icons.restaurant,
-                title: 'تم حجز طاولة في مطعم الأصالة',
-                time: 'منذ ساعتين',
-                color: const Color(0xFFEF4444),
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary,
+                          AppColors.accent,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+                    ),
+                  
+                    child: const Icon(
+                      Icons.smart_toy,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.medium),
+
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'مساعدك الشخصي',
+                          style: GoogleFonts.tajawal(
+                            fontSize: AppFontSizes.large,
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.extraSmall),
+                        Text(
+                          'اسأل عن أي خدمة أو احصل على توصيات مخصصة',
+                          style: GoogleFonts.tajawal(
+                            fontSize: AppFontSizes.medium,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const Divider(height: AppSpacing.large),
-              _buildActivityItem(
-                icon: Icons.hotel,
-                title: 'تم حجز غرفة في فندق الجزائر الكبير',
-                time: 'أمس',
-                color: const Color(0xFF3B82F6),
+              const SizedBox(height: AppSpacing.large),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildAIFeatureItem(
+                      icon: Icons.search,
+                      title: 'البحث الذكي',
+                      subtitle: 'ابحث بالصوت أو النص',
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.medium),
+                  Expanded(
+                    child: _buildAIFeatureItem(
+                      icon: Icons.recommend,
+                      title: 'التوصيات',
+                      subtitle: 'اقتراحات مخصصة لك',
+                    ),
+                  ),
+                ],
               ),
-              const Divider(height: AppSpacing.large),
-              _buildActivityItem(
-                icon: Icons.flight,
-                title: 'تم حجز رحلة إلى تمنراست',
-                time: 'منذ 3 أيام',
-                color: const Color(0xFF8B5CF6),
+              const SizedBox(height: AppSpacing.medium),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.push(AppRoutes.aiTrip);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.medium),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppBorderRadius.medium),
+                    ),
+                  ),
+                  child: Text(
+                    'ابدأ المحادثة',
+                    style: GoogleFonts.tajawal(
+                      fontSize: AppFontSizes.medium,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -563,52 +777,90 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityItem({
+  Widget _buildAIFeatureItem({
     required IconData icon,
     required String title,
-    required String time,
+    required String subtitle,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.medium),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.7),
+        borderRadius: BorderRadius.circular(AppBorderRadius.small),
+        border: Border.all(color: AppColors.border.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            color: AppColors.primary,
+            size: 24,
+          ),
+          const SizedBox(height: AppSpacing.small),
+          Text(
+            title,
+            style: GoogleFonts.tajawal(
+              fontSize: AppFontSizes.small,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.extraSmall),
+          Text(
+            subtitle,
+            style: GoogleFonts.tajawal(
+              fontSize: AppFontSizes.extraSmall,
+              color: AppColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActionButton({
+    required IconData icon,
+    required String title,
     required Color color,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(AppBorderRadius.small),
-          ),
-          child: Icon(
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.small,
+        horizontal: AppSpacing.extraSmall,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppBorderRadius.small),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(
             icon,
             color: color,
             size: 20,
           ),
-        ),
-        const SizedBox(width: AppSpacing.medium),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.tajawal(
-                  fontSize: AppFontSizes.medium,
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.extraSmall),
-              Text(
-                time,
-                style: GoogleFonts.tajawal(
-                  fontSize: AppFontSizes.small,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
+          const SizedBox(height: AppSpacing.extraSmall),
+          Text(
+            title,
+            style: GoogleFonts.tajawal(
+              fontSize: AppFontSizes.extraSmall,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 }
