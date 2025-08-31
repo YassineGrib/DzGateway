@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/constants/app_constants.dart';
 import '../../models/restaurant_model.dart';
 import '../../models/favorite_model.dart';
 import '../../services/favorite_service.dart';
@@ -305,12 +307,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const RestaurantsScreen(),
-                ),
-              );
+              context.go(AppRoutes.restaurants);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2E7D32),
@@ -550,6 +547,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         foregroundColor: Colors.black,
         elevation: 0,
         shadowColor: Colors.grey.withOpacity(0.1),
+        leading: IconButton(
+          onPressed: () => context.go(AppRoutes.home),
+          icon: const Icon(Icons.arrow_back_ios),
+          tooltip: 'رجوع',
+        ),
         actions: [
           IconButton(
             onPressed: _loadFavorites,

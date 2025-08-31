@@ -109,6 +109,7 @@ class AppStrings {
   static const String delivery = 'التوصيل';
   static const String travel = 'السفر';
   static const String tourism = 'السياحة';
+  static const String aiTrip = 'مخطط الرحلات الذكي';
   
   // Validation Messages
   static const String fieldRequired = 'هذا الحقل مطلوب';
@@ -141,8 +142,13 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String home = '/home';
   static const String profile = '/profile';
+  static const String favorites = '/favorites';
+  static const String restaurants = '/restaurants';
   static const String hotels = '/hotels';
   static const String hotelDetail = '/hotel-detail';
   static const String transportCompanies = '/transport-companies';
   static const String deliveryCompanies = '/delivery-companies';
+  static const String travelAgencies = '/travel-agencies';
+  static const String touristAreas = '/tourist-areas';
+  static const String aiTrip = '/ai-trip';
 }

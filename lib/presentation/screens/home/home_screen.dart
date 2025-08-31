@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
+import '../../widgets/custom_bottom_nav.dart';
 import '../restaurants_screen.dart';
 import '../delivery_companies_screen.dart';
 
@@ -56,7 +57,7 @@ class HomeScreen extends StatelessWidget {
         ),
         
         // Bottom Navigation Bar
-        bottomNavigationBar: _buildBottomNavBar(),
+        bottomNavigationBar: _buildBottomNavBar(context),
       ),
     );
   }
@@ -217,6 +218,11 @@ class HomeScreen extends StatelessWidget {
         'icon': Icons.landscape,
         'color': const Color(0xFF06B6D4),
       },
+      // {
+      //   'title': AppStrings.aiTrip,
+      //   'icon': Icons.smart_toy,
+      //   'color': const Color(0xFF9333EA),
+      // },
     ];
     
     return Column(
@@ -230,30 +236,28 @@ class HomeScreen extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: AppSpacing.medium),
+        // const SizedBox(height: AppSpacing.medium),
         
-        // Horizontal Category Cards
-        SizedBox(
-          height: 120,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return Container(
-                width: 100,
-                margin: EdgeInsets.only(
-                  left: index == 0 ? 0 : AppSpacing.medium,
-                ),
-                child: _buildCategoryCard(
-                  context: context,
-                  title: category['title'] as String,
-                  icon: category['icon'] as IconData,
-                  color: category['color'] as Color,
-                ),
-              );
-            },
+        // Grid Category Cards
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: AppSpacing.large,
+            mainAxisSpacing: AppSpacing.large,
+            childAspectRatio: 1.0,
           ),
+          itemCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return _buildCategoryCard(
+              context: context,
+              title: category['title'] as String,
+              icon: category['icon'] as IconData,
+              color: category['color'] as Color,
+            );
+          },
         ),
       ],
     );
@@ -268,59 +272,50 @@ class HomeScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (title == AppStrings.restaurants) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const RestaurantsScreen(),
-            ),
-          );
+          context.push(AppRoutes.restaurants);
         } else if (title == AppStrings.hotels) {
           context.push(AppRoutes.hotels);
         } else if (title == AppStrings.transport) {
           context.push(AppRoutes.transportCompanies);
         } else if (title == AppStrings.delivery) {
           context.push(AppRoutes.deliveryCompanies);
+        } else if (title == AppStrings.travel) {
+          context.push(AppRoutes.travelAgencies);
+        } else if (title == AppStrings.tourism) {
+          context.push(AppRoutes.touristAreas);
+        } else if (title == AppStrings.aiTrip) {
+          context.push(AppRoutes.aiTrip);
         } else {
           // TODO: Navigate to other category screens
         }
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: color,
           borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.border.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppBorderRadius.medium),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 28,
-              ),
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 28,
             ),
             const SizedBox(height: AppSpacing.small),
-            Text(
-              title,
-              style: GoogleFonts.tajawal(
-                fontSize: AppFontSizes.small,
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              child: Text(
+                title,
+                style: GoogleFonts.tajawal(
+                  fontSize: AppFontSizes.extraSmall,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -328,53 +323,34 @@ class HomeScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildBottomNavBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.border.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.surface,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textSecondary,
-        selectedLabelStyle: GoogleFonts.tajawal(
-          fontSize: AppFontSizes.extraSmall,
-        ),
-        unselectedLabelStyle: GoogleFonts.tajawal(
-          fontSize: AppFontSizes.extraSmall,
-        ),
-        elevation: 0,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'الرئيسية',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search_outlined),
-            activeIcon: Icon(Icons.search),
-            label: 'البحث',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite_outline),
-            activeIcon: Icon(Icons.favorite),
-            label: 'المفضلة',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'الملف الشخصي',
-          ),
-        ],
-      ),
+  Widget _buildBottomNavBar(BuildContext context) {
+    return CustomBottomNav(
+      currentIndex: 0, // Home is always selected
+      onTap: (index) {
+        // Handle navigation based on index
+        switch (index) {
+          case 0:
+            // Already on home
+            break;
+          case 1:
+            // Navigate to search
+            break;
+          case 2:
+            // Navigate to favorites
+            context.go(AppRoutes.favorites);
+            break;
+          case 3:
+            // Navigate to AI
+            break;
+          case 4:
+            // Navigate to orders
+            break;
+          case 5:
+            // Navigate to profile
+            context.go(AppRoutes.profile);
+            break;
+        }
+      },
     );
   }
 

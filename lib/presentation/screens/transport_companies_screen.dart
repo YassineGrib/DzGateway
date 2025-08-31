@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/transport_company_model.dart';
 import '../../services/transport_service.dart';
+import '../../core/constants/app_constants.dart';
 import '../widgets/unified_app_bar.dart';
 import '../widgets/search_filter_widget.dart';
 import '../widgets/advertisement_banner.dart';
@@ -84,7 +86,7 @@ class _TransportCompaniesScreenState extends State<TransportCompaniesScreen> {
       appBar: UnifiedAppBar(
         pageType: PageType.transport,
         title: 'شركات النقل',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => context.go(AppRoutes.home),
       ),
       body: Column(
         children: [

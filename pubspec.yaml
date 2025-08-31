@@ -49,6 +49,9 @@ dependencies:
   # State management
   flutter_bloc: ^9.1.1
   
+  # HTTP requests
+  http: ^1.1.0
+  
   # Supabase for backend and authentication
   supabase_flutter: ^2.8.0
   
@@ -61,6 +64,9 @@ dependencies:
   
   # Image picker for profile pictures
   image_picker: ^1.0.4
+  
+  # Cached network images
+  cached_network_image: ^3.3.1
 
 dev_dependencies:
   flutter_test:

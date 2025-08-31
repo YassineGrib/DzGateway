@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 
 enum PageType {
@@ -72,7 +73,7 @@ class UnifiedAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       leading: onBackPressed != null
           ? IconButton(
-              onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+              onPressed: onBackPressed ?? () => context.go(AppRoutes.home),
               icon: const Icon(
                 Icons.arrow_back_ios,
                 color: Colors.white,

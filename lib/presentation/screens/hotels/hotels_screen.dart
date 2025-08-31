@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/hotel_model.dart';
 import '../../../services/hotel_service.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../widgets/unified_app_bar.dart';
 import '../../widgets/search_filter_widget.dart';
 import '../../widgets/advertisement_banner.dart';
@@ -150,7 +152,7 @@ class _HotelsScreenState extends State<HotelsScreen> {
       appBar: UnifiedAppBar(
         pageType: PageType.hotels,
         title: 'الفنادق',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => context.go(AppRoutes.home),
       ),
       body: Column(
         children: [

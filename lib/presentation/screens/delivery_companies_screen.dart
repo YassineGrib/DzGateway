@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../models/delivery_company_model.dart';
 import '../../services/delivery_service.dart';
@@ -94,7 +95,7 @@ class _DeliveryCompaniesScreenState extends State<DeliveryCompaniesScreen> {
       appBar: UnifiedAppBar(
         pageType: PageType.delivery,
         title: 'شركات التوصيل',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => context.go(AppRoutes.home),
       ),
       body: Column(
         children: [

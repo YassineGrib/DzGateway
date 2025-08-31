@@ -82,7 +82,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => context.go(AppRoutes.home),
             ),
             title: Text(
               'الملف الشخصي',
@@ -109,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           elevation: 0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => context.go(AppRoutes.home),
           ),
           title: Text(
             'الملف الشخصي',

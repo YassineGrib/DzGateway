@@ -12,6 +12,11 @@ import 'presentation/screens/profile/profile_screen.dart';
 import 'presentation/screens/hotels/hotels_screen.dart';
 import 'presentation/screens/transport_companies_screen.dart';
 import 'presentation/screens/delivery_companies_screen.dart';
+import 'presentation/screens/travel_agencies/travel_agencies_screen.dart';
+import 'presentation/screens/tourist_areas/tourist_areas_screen.dart';
+import 'presentation/screens/ai_trip/ai_trip_screen.dart';
+import 'presentation/screens/favorites_screen.dart';
+import 'presentation/screens/restaurants_screen.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
 
@@ -162,6 +167,22 @@ final GoRouter _router = GoRouter(
       ),
     ),
     GoRoute(
+      path: AppRoutes.favorites,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const FavoritesScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.restaurants,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const RestaurantsScreen(),
+      ),
+    ),
+    GoRoute(
       path: AppRoutes.hotels,
       pageBuilder: (context, state) => _buildPageWithTransition(
         context,
@@ -191,6 +212,30 @@ final GoRouter _router = GoRouter(
         context,
         state,
         const DeliveryCompaniesScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.travelAgencies,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const TravelAgenciesScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.touristAreas,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const TouristAreasScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.aiTrip,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AiTripScreen(),
       ),
     ),
   ],

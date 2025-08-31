@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
 import '../../models/restaurant_model.dart';
 import '../../models/menu_item_model.dart';
 import '../../models/favorite_model.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/menu_service.dart';
+import '../../core/constants/app_constants.dart';
 import '../widgets/unified_app_bar.dart';
 import '../widgets/search_filter_widget.dart';
 import '../widgets/advertisement_banner.dart';
@@ -144,7 +148,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen>
       appBar: UnifiedAppBar(
         pageType: PageType.restaurants,
         title: 'المطاعم',
-        onBackPressed: () => Navigator.pop(context),
+        onBackPressed: () => context.go(AppRoutes.home),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
