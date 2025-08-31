@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../models/hotel_model.dart';
 import '../../../services/hotel_service.dart';
+import '../../widgets/unified_app_bar.dart';
+import '../../widgets/search_filter_widget.dart';
+import '../../widgets/advertisement_banner.dart';
 
 class HotelsScreen extends StatefulWidget {
   const HotelsScreen({super.key});
@@ -121,129 +124,38 @@ class _HotelsScreenState extends State<HotelsScreen> {
     }
   }
 
-  void _showHotelDetails(Hotel hotel) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => HotelDetailScreen(hotelId: hotel.id),
-      ),
-    );
+  void _filterHotels() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      if (query.isEmpty && (_selectedWilaya == null || _selectedWilaya == 'الكل')) {
+        _filteredHotels = _hotels;
+      } else {
+        _filteredHotels = _hotels.where((hotel) {
+          final matchesQuery = query.isEmpty || 
+              hotel.name.toLowerCase().contains(query) ||
+              hotel.description.toLowerCase().contains(query);
+          final matchesWilaya = _selectedWilaya == null || 
+              _selectedWilaya == 'الكل' || 
+              hotel.wilaya == _selectedWilaya;
+          return matchesQuery && matchesWilaya;
+        }).toList();
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'الفنادق',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.blue[700],
-        elevation: 0,
-        centerTitle: true,
+      appBar: UnifiedAppBar(
+        pageType: PageType.hotels,
+        title: 'الفنادق',
+        onBackPressed: () => Navigator.pop(context),
       ),
       body: Column(
         children: [
-          // Search and Filter Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  textDirection: TextDirection.rtl,
-                  decoration: InputDecoration(
-                    hintText: 'ابحث عن فندق...',
-                    hintStyle: TextStyle(color: Colors.grey[400]),
-                    prefixIcon: _isSearching
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: Padding(
-                              padding: EdgeInsets.all(12),
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                              ),
-                            ),
-                          )
-                        : const Icon(Icons.search, color: Colors.grey),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear, color: Colors.grey),
-                            onPressed: () {
-                              _searchController.clear();
-                              _searchHotels('');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue[700]!),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                  ),
-                  onChanged: (value) {
-                    Future.delayed(const Duration(milliseconds: 500), () {
-                      if (_searchController.text == value) {
-                        _searchHotels(value);
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 12),
-                // Wilaya Filter
-                DropdownButtonFormField<String>(
-                  value: _selectedWilaya,
-                  decoration: InputDecoration(
-                    labelText: 'اختر الولاية',
-                    labelStyle: TextStyle(color: Colors.grey[600]),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.blue[700]!),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                  ),
-                  items: [
-                    const DropdownMenuItem<String>(
-                      value: null,
-                      child: Text('جميع الولايات'),
-                    ),
-                    ..._wilayas.map((wilaya) => DropdownMenuItem<String>(
-                          value: wilaya,
-                          child: Text(wilaya),
-                        )),
-                  ],
-                  onChanged: _filterByWilaya,
-                ),
-              ],
-            ),
-          ),
-          // Hotels List
+          const AdvertisementBanner(adType: AdType.generic),
+          // Content
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -261,21 +173,11 @@ class _HotelsScreenState extends State<HotelsScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'لا توجد فنادق',
+                              'لا توجد فنادق متاحة',
                               style: TextStyle(
                                 fontSize: 18,
                                 color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'جرب البحث بكلمات مختلفة أو اختر ولاية أخرى',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey[500],
-                              ),
-                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
@@ -283,16 +185,37 @@ class _HotelsScreenState extends State<HotelsScreen> {
                     : RefreshIndicator(
                         onRefresh: _loadInitialData,
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
                           itemCount: _filteredHotels.length,
                           itemBuilder: (context, index) {
-                            final hotel = _filteredHotels[index];
-                            return _buildHotelCard(hotel);
+                            return _buildHotelCard(_filteredHotels[index]);
                           },
                         ),
                       ),
           ),
         ],
+      ),
+      floatingActionButton: SearchFilterWidget(
+        onSearchChanged: (value) {
+          _searchController.text = value;
+          _filterHotels();
+        },
+        searchHint: 'البحث عن فندق...',
+        filterOptions: ['الكل', ..._wilayas],
+        onFilterChanged: (filters) {
+          setState(() {
+            _selectedWilaya = filters['wilaya'];
+          });
+          _filterHotels();
+        },
+      ),
+    );
+  }
+
+  void _showHotelDetails(Hotel hotel) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => HotelDetailScreen(hotelId: hotel.id),
       ),
     );
   }

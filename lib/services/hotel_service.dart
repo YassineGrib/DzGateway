@@ -281,7 +281,7 @@ class HotelService {
     try {
       final response = await _supabase
           .from('hotels')
-          .insert(hotel.toInsertJson())
+          .insert(hotel.toJson())
           .select()
           .single();
 

@@ -4,7 +4,9 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/app_constants.dart';
 import '../../models/delivery_company_model.dart';
 import '../../services/delivery_service.dart';
-import '../widgets/custom_bottom_nav.dart';
+import '../widgets/unified_app_bar.dart';
+import '../widgets/search_filter_widget.dart';
+import '../widgets/advertisement_banner.dart';
 
 class DeliveryCompaniesScreen extends StatefulWidget {
   const DeliveryCompaniesScreen({super.key});
@@ -89,101 +91,16 @@ class _DeliveryCompaniesScreenState extends State<DeliveryCompaniesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'شركات التوصيل',
-          style: GoogleFonts.cairo(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: UnifiedAppBar(
+        pageType: PageType.delivery,
+        title: 'شركات التوصيل',
+        onBackPressed: () => Navigator.pop(context),
       ),
       body: Column(
         children: [
-          // Search and Filter Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.surface,
-            child: Column(
-              children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  textAlign: TextAlign.right,
-                  decoration: InputDecoration(
-                    hintText: 'البحث عن شركة توصيل...',
-                    hintStyle: GoogleFonts.cairo(
-                      color: AppColors.textSecondary,
-                    ),
-                    prefixIcon: Icon(Icons.search, color: AppColors.textSecondary),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.border),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.primary),
-                    ),
-                    filled: true,
-                    fillColor: AppColors.background,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Wilaya Filter
-                Row(
-                  children: [
-                    Text(
-                      'الولاية:',
-                      style: GoogleFonts.cairo(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.border),
-                          borderRadius: BorderRadius.circular(8),
-                          color: AppColors.background,
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedWilaya,
-                            isExpanded: true,
-                            onChanged: _onWilayaChanged,
-                            items: _availableWilayas.map((wilaya) {
-                              return DropdownMenuItem(
-                                value: wilaya,
-                                child: Text(
-                                  wilaya,
-                                  style: GoogleFonts.cairo(
-                                    color: AppColors.textPrimary,
-                                  ),
-                                  textAlign: TextAlign.right,
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          // Advertisement Banner
+          const YalledinAdBanner(),
+          const SizedBox(height: 8),
           // Companies List
           Expanded(
             child: _isLoading
@@ -222,10 +139,12 @@ class _DeliveryCompaniesScreenState extends State<DeliveryCompaniesScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 3,
-        onTap: (index) {
-          // Handle navigation
+      floatingActionButton: SearchFilterWidget(
+        onSearchChanged: _onSearchChanged,
+        searchHint: 'البحث عن شركة توصيل...',
+        filterOptions: _availableWilayas,
+        onFilterChanged: (filters) {
+          _onWilayaChanged(filters['wilaya']);
         },
       ),
     );

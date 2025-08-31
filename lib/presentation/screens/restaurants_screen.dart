@@ -6,6 +6,9 @@ import '../../models/favorite_model.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/favorite_service.dart';
 import '../../services/menu_service.dart';
+import '../widgets/unified_app_bar.dart';
+import '../widgets/search_filter_widget.dart';
+import '../widgets/advertisement_banner.dart';
 
 class RestaurantsScreen extends StatefulWidget {
   const RestaurantsScreen({super.key});
@@ -138,22 +141,10 @@ class _RestaurantsScreenState extends State<RestaurantsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        title: const Text(
-          'المطاعم',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 20,
-          ),
-        ),
-        backgroundColor: const Color(0xFF2E7D32),
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+      appBar: UnifiedAppBar(
+        pageType: PageType.restaurants,
+        title: 'المطاعم',
+        onBackPressed: () => Navigator.pop(context),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -177,7 +168,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen>
       ),
       body: Column(
         children: [
-          _buildSearchAndFilter(),
+          const AdvertisementBanner(adType: AdType.yalledin),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -189,6 +180,19 @@ class _RestaurantsScreenState extends State<RestaurantsScreen>
             ),
           ),
         ],
+      ),
+      floatingActionButton: SearchFilterWidget(
+        onSearchChanged: (query) {
+          _searchController.text = query;
+          _filterRestaurants();
+        },
+        filterOptions: _locations,
+        onFilterChanged: (filters) {
+          setState(() {
+            _selectedLocation = filters['location'] ?? 'الكل';
+          });
+          _filterRestaurants();
+        },
       ),
     );
   }

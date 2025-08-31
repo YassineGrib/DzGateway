@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/transport_company_model.dart';
 import '../../services/transport_service.dart';
-import '../widgets/custom_app_bar.dart';
-import '../widgets/custom_bottom_nav.dart';
+import '../widgets/unified_app_bar.dart';
+import '../widgets/search_filter_widget.dart';
+import '../widgets/advertisement_banner.dart';
 
 class TransportCompaniesScreen extends StatefulWidget {
   const TransportCompaniesScreen({Key? key}) : super(key: key);
@@ -80,75 +81,31 @@ class _TransportCompaniesScreenState extends State<TransportCompaniesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: const CustomAppBar(
+      appBar: UnifiedAppBar(
+        pageType: PageType.transport,
         title: 'شركات النقل',
-        showBackButton: true,
+        onBackPressed: () => Navigator.pop(context),
       ),
       body: Column(
         children: [
-          // Search and Filter Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 1,
-                  blurRadius: 3,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // Search Bar
-                TextField(
-                  controller: _searchController,
-                  onChanged: (value) => _filterCompanies(),
-                  decoration: InputDecoration(
-                    hintText: 'البحث عن شركة نقل...',
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.blue),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                // Filter Chips
-                Row(
-                  children: [
-                    _buildFilterChip('الكل', 'all'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('عام', 'public'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('خاص', 'private'),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          const YassirAdBanner(),
           // Content
           Expanded(
             child: _buildContent(),
           ),
         ],
       ),
-      bottomNavigationBar: CustomBottomNav(
-        currentIndex: 2,
-        onTap: (index) {
-          // Handle navigation
+      floatingActionButton: SearchFilterWidget(
+        onSearchChanged: (value) {
+          _searchController.text = value;
+          _filterCompanies();
+        },
+        filterOptions: ['all', 'public', 'private'],
+        onFilterChanged: (filters) {
+          setState(() {
+            _selectedType = filters['type'] ?? 'all';
+          });
+          _filterCompanies();
         },
       ),
     );
