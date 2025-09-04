@@ -142,9 +142,13 @@ class RestaurantService {
   // Create a new restaurant (for restaurant owners)
   Future<Restaurant> createRestaurant(Restaurant restaurant) async {
     try {
+      // Create a copy of the restaurant data without the ID
+      final restaurantData = restaurant.toJson();
+      restaurantData.remove('id'); // Remove empty ID to let database generate it
+      
       final response = await _supabase
           .from('restaurants')
-          .insert(restaurant.toJson())
+          .insert(restaurantData)
           .select()
           .single();
 

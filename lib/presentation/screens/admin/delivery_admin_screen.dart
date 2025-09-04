@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/delivery_company_model.dart';
 import '../../../services/delivery_service.dart';
 import '../../../services/admin_service.dart';
@@ -190,7 +191,7 @@ class _DeliveryAdminScreenState extends State<DeliveryAdminScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddEditCompanyDialog();
+          context.go('/admin/delivery-companies/add');
         },
         backgroundColor: Colors.purple.shade600,
         child: const Icon(Icons.add, color: Colors.white),
@@ -290,7 +291,7 @@ class _DeliveryAdminScreenState extends State<DeliveryAdminScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _showAddEditCompanyDialog(company: company);
+                      context.go('/admin/delivery-companies/edit/${company.id}');
                     } else if (value == 'delete') {
                       _deleteCompany(company.id);
                     }

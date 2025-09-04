@@ -61,6 +61,22 @@ class TransportService {
     }
   }
 
+  // جلب شركة نقل واحدة بالمعرف
+  Future<TransportCompany?> getTransportCompanyById(String companyId) async {
+    try {
+      final response = await _supabase
+          .from('transport_companies')
+          .select('*')
+          .eq('id', companyId)
+          .single();
+
+      return TransportCompany.fromJson(response);
+    } catch (e) {
+      print('خطأ في جلب شركة النقل: $e');
+      return null;
+    }
+  }
+
   // جلب تفاصيل شركة نقل واحدة مع الطرق والجداول
   Future<TransportCompany?> getTransportCompanyDetails(String companyId) async {
     try {
@@ -180,16 +196,45 @@ class TransportService {
     }
   }
 
-  // تحديث شركة النقل
-  Future<TransportCompany?> updateTransportCompany(
-    String companyId,
-    Map<String, dynamic> updates,
-  ) async {
+  // إنشاء شركة نقل جديدة
+  Future<TransportCompany?> createTransportCompany(TransportCompany company) async {
     try {
       final response = await _supabase
           .from('transport_companies')
-          .update(updates)
-          .eq('id', companyId)
+          .insert({
+            'name': company.name,
+            'phone': company.phone,
+            'transport_type': company.transportType,
+            'description': company.description,
+            'cover_image': company.coverImage,
+            'price_range': company.priceRange,
+            'is_active': true,
+          })
+          .select()
+          .single();
+
+      return TransportCompany.fromJson(response);
+    } catch (e) {
+      print('خطأ في إنشاء شركة النقل: $e');
+      throw Exception('فشل في إنشاء شركة النقل');
+    }
+  }
+
+  // تحديث شركة النقل
+  Future<TransportCompany?> updateTransportCompany(TransportCompany company) async {
+    try {
+      final response = await _supabase
+          .from('transport_companies')
+          .update({
+            'name': company.name,
+            'phone': company.phone,
+            'transport_type': company.transportType,
+            'description': company.description,
+            'cover_image': company.coverImage,
+            'price_range': company.priceRange,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', company.id)
           .select()
           .single();
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/restaurant_model.dart';
 import '../../../services/restaurant_service.dart';
 import '../../../services/admin_service.dart';
+import '../../../core/constants/app_constants.dart';
 
 class RestaurantsAdminScreen extends StatefulWidget {
   const RestaurantsAdminScreen({super.key});
@@ -75,8 +77,7 @@ class _RestaurantsAdminScreenState extends State<RestaurantsAdminScreen> {
 
     if (confirmed == true) {
       try {
-        // Note: You'll need to implement deleteRestaurant in RestaurantService
-        // await RestaurantService.deleteRestaurant(restaurantId);
+        await RestaurantService().deleteRestaurant(restaurantId);
         await _loadRestaurants();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -189,7 +190,7 @@ class _RestaurantsAdminScreenState extends State<RestaurantsAdminScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddEditRestaurantDialog();
+          context.go('/admin/restaurants/add');
         },
         backgroundColor: Colors.orange.shade600,
         child: const Icon(Icons.add, color: Colors.white),
@@ -281,7 +282,7 @@ class _RestaurantsAdminScreenState extends State<RestaurantsAdminScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _showAddEditRestaurantDialog(restaurant: restaurant);
+                      context.go('/admin/restaurants/edit/${restaurant.id}');
                     } else if (value == 'delete') {
                       _deleteRestaurant(restaurant.id);
                     }

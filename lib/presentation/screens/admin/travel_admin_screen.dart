@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/travel_agency_model.dart';
 import '../../../services/travel_service.dart';
 import '../../../services/admin_service.dart';
+import '../../../core/constants/app_constants.dart';
 
 class TravelAdminScreen extends StatefulWidget {
   const TravelAdminScreen({super.key});
@@ -190,7 +192,7 @@ class _TravelAdminScreenState extends State<TravelAdminScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddEditAgencyDialog();
+          context.go('/admin/travel-agencies/add');
         },
         backgroundColor: Colors.teal.shade600,
         child: const Icon(Icons.add, color: Colors.white),
@@ -290,7 +292,7 @@ class _TravelAdminScreenState extends State<TravelAdminScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _showAddEditAgencyDialog(agency: agency);
+                      context.go('/admin/travel-agencies/edit/${agency.id}');
                     } else if (value == 'delete') {
                       _deleteAgency(agency.id);
                     }

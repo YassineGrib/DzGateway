@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/transport_company_model.dart';
 import '../../../services/transport_service.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../services/admin_service.dart';
 
 class TransportAdminScreen extends StatefulWidget {
@@ -189,9 +191,7 @@ class _TransportAdminScreenState extends State<TransportAdminScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showAddEditCompanyDialog();
-        },
+        onPressed: () => context.go('/admin/transport-companies/add'),
         backgroundColor: Colors.green.shade600,
         child: const Icon(Icons.add, color: Colors.white),
       ),
@@ -290,7 +290,7 @@ class _TransportAdminScreenState extends State<TransportAdminScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _showAddEditCompanyDialog(company: company);
+                      context.go('/admin/transport-companies/edit/${company.id}');
                     } else if (value == 'delete') {
                       _deleteCompany(company.id);
                     }

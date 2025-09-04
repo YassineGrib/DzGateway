@@ -20,6 +20,10 @@ import 'presentation/screens/restaurants_screen.dart';
 import 'presentation/screens/admin/admin_login_screen.dart';
 import 'presentation/screens/admin/admin_dashboard_screen.dart';
 import 'presentation/screens/admin/restaurants_admin_screen.dart';
+import 'presentation/screens/admin/add_restaurant_screen.dart';
+import 'presentation/screens/admin/add_travel_agency_screen.dart';
+import 'presentation/screens/admin/add_transport_company_screen.dart';
+import 'presentation/screens/admin/add_delivery_company_screen.dart';
 import 'presentation/screens/admin/hotels_admin_screen.dart';
 import 'presentation/screens/admin/transport_admin_screen.dart';
 import 'presentation/screens/admin/delivery_admin_screen.dart';
@@ -310,6 +314,78 @@ final GoRouter _router = GoRouter(
         context,
         state,
         const TourismAdminScreen(),
+      ),
+    ),
+    
+    // Restaurant Management Routes
+    GoRoute(
+      path: '/admin/restaurants/add',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AddRestaurantScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/restaurants/edit/:id',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        AddRestaurantScreen(restaurantId: state.pathParameters['id']),
+      ),
+    ),
+    
+    // Travel Agency Management Routes
+    GoRoute(
+      path: '/admin/travel-agencies/add',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AddTravelAgencyScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/travel-agencies/edit/:id',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        AddTravelAgencyScreen(agencyId: state.pathParameters['id']),
+      ),
+    ),
+    
+    // Transport Company Management Routes
+    GoRoute(
+      path: '/admin/transport-companies/add',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AddTransportCompanyScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/transport-companies/edit/:id',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        AddTransportCompanyScreen(companyId: state.pathParameters['id']),
+      ),
+    ),
+    
+    // Delivery Company Management Routes
+    GoRoute(
+      path: '/admin/delivery-companies/add',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AddDeliveryCompanyScreen(),
+      ),
+    ),
+    GoRoute(
+      path: '/admin/delivery-companies/edit/:id',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        AddDeliveryCompanyScreen(companyId: state.pathParameters['id']),
       ),
     ),
   ],
