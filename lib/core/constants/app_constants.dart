@@ -151,4 +151,14 @@ class AppRoutes {
   static const String travelAgencies = '/travel-agencies';
   static const String touristAreas = '/tourist-areas';
   static const String aiTrip = '/ai-trip';
+  
+  // Admin Routes
+  static const String adminLogin = '/admin/login';
+  static const String adminDashboard = '/admin/dashboard';
+  static const String adminRestaurants = '/admin/restaurants';
+  static const String adminHotels = '/admin/hotels';
+  static const String adminTransport = '/admin/transport';
+  static const String adminDelivery = '/admin/delivery';
+  static const String adminTravel = '/admin/travel';
+  static const String adminTourism = '/admin/tourism';
 }

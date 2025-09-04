@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../models/user_model.dart';
 import '../../../services/user_service.dart';
 import '../../../services/auth_service.dart';
+import '../../../services/admin_service.dart';
 import '../help/help_screen.dart';
 import '../about/about_screen.dart';
 
@@ -23,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   UserModel? _userProfile;
   Map<String, int> _userStats = {};
   bool _isLoading = true;
+  bool _isAdmin = false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
 
@@ -47,10 +49,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final profile = await UserService.getCurrentUserProfile();
       final stats = await UserService.getUserStats();
+      final isAdmin = await AdminService.isCurrentUserAdmin();
       
       setState(() {
         _userProfile = profile;
         _userStats = stats;
+        _isAdmin = isAdmin;
         _nameController.text = profile?.fullName ?? '';
         _phoneController.text = profile?.phone ?? '';
         _isLoading = false;
@@ -345,6 +349,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             title: 'تعديل الملف الشخصي',
             onTap: () => _showEditProfileDialog(),
           ),
+          if (_isAdmin) ...[
+            _buildMenuItem(
+              icon: Icons.admin_panel_settings,
+              title: 'لوحة الإدارة',
+              onTap: () => context.go(AppRoutes.adminDashboard),
+            ),
+          ],
           _buildMenuItem(
             icon: Icons.bookmark_outline,
             title: 'المحفوظات',

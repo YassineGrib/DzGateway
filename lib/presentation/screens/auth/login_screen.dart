@@ -20,6 +20,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
   bool _isLoading = false;
+  int _logoTapCount = 0;
   
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -141,17 +142,26 @@ class _LoginScreenState extends State<LoginScreen>
                   
                   // Logo/Image Section
                   Center(
-                    child: Container(
-                      height: 200,
-                      width: 200,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(AppBorderRadius.large),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(AppBorderRadius.large),
-                        child: Image.asset(
-                          AppImages.authLogin,
-                          fit: BoxFit.contain,
+                    child: GestureDetector(
+                      onTap: () {
+                        _logoTapCount++;
+                        if (_logoTapCount >= 7) {
+                          _logoTapCount = 0;
+                          context.go(AppRoutes.adminLogin);
+                        }
+                      },
+                      child: Container(
+                        height: 200,
+                        width: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppBorderRadius.large),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppBorderRadius.large),
+                          child: Image.asset(
+                            AppImages.authLogin,
+                            fit: BoxFit.contain,
+                          ),
                         ),
                       ),
                     ),

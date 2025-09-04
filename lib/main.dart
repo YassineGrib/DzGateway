@@ -17,6 +17,14 @@ import 'presentation/screens/tourist_areas/tourist_areas_screen.dart';
 import 'presentation/screens/ai_trip/ai_trip_screen.dart';
 import 'presentation/screens/favorites_screen.dart';
 import 'presentation/screens/restaurants_screen.dart';
+import 'presentation/screens/admin/admin_login_screen.dart';
+import 'presentation/screens/admin/admin_dashboard_screen.dart';
+import 'presentation/screens/admin/restaurants_admin_screen.dart';
+import 'presentation/screens/admin/hotels_admin_screen.dart';
+import 'presentation/screens/admin/transport_admin_screen.dart';
+import 'presentation/screens/admin/delivery_admin_screen.dart';
+import 'presentation/screens/admin/travel_admin_screen.dart';
+import 'presentation/screens/admin/tourism_admin_screen.dart';
 import 'services/auth_service.dart';
 import 'services/storage_service.dart';
 
@@ -236,6 +244,72 @@ final GoRouter _router = GoRouter(
         context,
         state,
         const AiTripScreen(),
+      ),
+    ),
+    
+    // Admin Routes
+    GoRoute(
+      path: AppRoutes.adminLogin,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AdminLoginScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminDashboard,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AdminDashboardScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminRestaurants,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const RestaurantsAdminScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminHotels,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const HotelsAdminScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminTransport,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const TransportAdminScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminDelivery,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const DeliveryAdminScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminTravel,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const TravelAdminScreen(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.adminTourism,
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const TourismAdminScreen(),
       ),
     ),
   ],
