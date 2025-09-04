@@ -343,4 +343,17 @@ class TransportService {
       throw Exception('فشل في إضافة صورة الشركة');
     }
   }
+
+  // حذف شركة نقل (حذف ناعم)
+  Future<void> deleteTransportCompany(String companyId) async {
+    try {
+      await _supabase
+          .from('transport_companies')
+          .update({'is_active': false})
+          .eq('id', companyId);
+    } catch (e) {
+      print('خطأ في حذف شركة النقل: $e');
+      throw Exception('فشل في حذف شركة النقل');
+    }
+  }
 }

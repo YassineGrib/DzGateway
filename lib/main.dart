@@ -24,6 +24,7 @@ import 'presentation/screens/admin/add_restaurant_screen.dart';
 import 'presentation/screens/admin/add_travel_agency_screen.dart';
 import 'presentation/screens/admin/add_transport_company_screen.dart';
 import 'presentation/screens/admin/add_delivery_company_screen.dart';
+import 'presentation/screens/admin/add_hotel_screen.dart';
 import 'presentation/screens/admin/hotels_admin_screen.dart';
 import 'presentation/screens/admin/transport_admin_screen.dart';
 import 'presentation/screens/admin/delivery_admin_screen.dart';
@@ -388,6 +389,24 @@ final GoRouter _router = GoRouter(
         AddDeliveryCompanyScreen(companyId: state.pathParameters['id']),
       ),
     ),
+    
+    // Hotel Management Routes
+    GoRoute(
+      path: '/admin/hotels/add',
+      pageBuilder: (context, state) => _buildPageWithTransition(
+        context,
+        state,
+        const AddHotelScreen(),
+      ),
+    ),
+    GoRoute(
+       path: '/admin/hotels/edit/:id',
+       pageBuilder: (context, state) => _buildPageWithTransition(
+         context,
+         state,
+         AddHotelScreen(hotelId: state.pathParameters['id']),
+       ),
+     ),
   ],
 );
 

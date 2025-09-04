@@ -207,58 +207,94 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                     const SizedBox(height: 24),
                     
-                    // Statistics Cards
-                    Text(
-                      'إحصائيات النظام',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.2,
+                    // Statistics Section
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildStatCard(
-                          'المطاعم',
-                          _stats['restaurants'] ?? 0,
-                          Icons.restaurant,
-                          Colors.orange,
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.analytics_outlined,
+                                color: Colors.blue.shade600,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'إحصائيات النظام',
+                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                          ],
                         ),
-                        _buildStatCard(
-                          'الفنادق',
-                          _stats['hotels'] ?? 0,
-                          Icons.hotel,
-                          Colors.purple,
-                        ),
-                        _buildStatCard(
-                          'النقل',
-                          _stats['transport'] ?? 0,
-                          Icons.directions_bus,
-                          Colors.green,
-                        ),
-                        _buildStatCard(
-                          'التوصيل',
-                          _stats['delivery'] ?? 0,
-                          Icons.delivery_dining,
-                          Colors.red,
-                        ),
-                        _buildStatCard(
-                          'السفر',
-                          _stats['travel'] ?? 0,
-                          Icons.flight,
-                          Colors.blue,
-                        ),
-                        _buildStatCard(
-                          'السياحة',
-                          _stats['tourist_areas'] ?? 0,
-                          Icons.landscape,
-                          Colors.teal,
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.blue.shade50, Colors.white],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.blue.shade100,
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildCleanStatItem(
+                                'المطاعم',
+                                _stats['restaurants'] ?? 0,
+                                Icons.restaurant_outlined,
+                                Colors.orange,
+                              ),
+                              const Divider(height: 24, color: Colors.grey),
+                              _buildCleanStatItem(
+                                'الفنادق',
+                                _stats['hotels'] ?? 0,
+                                Icons.hotel_outlined,
+                                Colors.purple,
+                              ),
+                              const Divider(height: 24, color: Colors.grey),
+                              _buildCleanStatItem(
+                                'النقل',
+                                _stats['transport'] ?? 0,
+                                Icons.directions_bus_outlined,
+                                Colors.green,
+                              ),
+                              const Divider(height: 24, color: Colors.grey),
+                              _buildCleanStatItem(
+                                'التوصيل',
+                                _stats['delivery'] ?? 0,
+                                Icons.delivery_dining_outlined,
+                                Colors.red,
+                              ),
+                              const Divider(height: 24, color: Colors.grey),
+                              _buildCleanStatItem(
+                                'السفر',
+                                _stats['travel'] ?? 0,
+                                Icons.flight_outlined,
+                                Colors.blue,
+                              ),
+                              const Divider(height: 24, color: Colors.grey),
+                              _buildCleanStatItem(
+                                'السياحة',
+                                _stats['tourist_areas'] ?? 0,
+                                Icons.landscape_outlined,
+                                Colors.teal,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -326,51 +362,50 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, int count, IconData icon, Color color) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: LinearGradient(
-            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 32,
-              color: color,
+  Widget _buildCleanStatItem(String title, int count, IconData icon, Color color) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(height: 8),
-            Text(
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
               count.toString(),
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

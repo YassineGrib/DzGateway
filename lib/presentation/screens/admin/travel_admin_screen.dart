@@ -113,6 +113,10 @@ class _TravelAdminScreenState extends State<TravelAdminScreen> {
         backgroundColor: Colors.teal.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/admin/dashboard'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

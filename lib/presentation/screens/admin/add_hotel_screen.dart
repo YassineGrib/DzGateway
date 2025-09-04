@@ -1,0 +1,729 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../models/hotel_model.dart';
+import '../../../services/hotel_service.dart';
+import '../../../services/image_upload_service.dart';
+
+
+class AddHotelScreen extends StatefulWidget {
+  final Hotel? hotel;
+  final String? hotelId;
+
+  const AddHotelScreen({super.key, this.hotel, this.hotelId});
+
+  @override
+  State<AddHotelScreen> createState() => _AddHotelScreenState();
+}
+
+class _AddHotelScreenState extends State<AddHotelScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final HotelService _hotelService = HotelService();
+
+  
+  // Controllers
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _addressController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _wilayaController = TextEditingController();
+  final _postalCodeController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _websiteController = TextEditingController();
+  final _priceRangeController = TextEditingController();
+  final _priceMinController = TextEditingController();
+  final _priceMaxController = TextEditingController();
+  final _latitudeController = TextEditingController();
+  final _longitudeController = TextEditingController();
+  final _checkInController = TextEditingController();
+  final _checkOutController = TextEditingController();
+  
+  int _starRating = 3;
+  String? _coverImageUrl;
+  bool _isLoading = false;
+  List<XFile> _selectedImages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.hotel != null) {
+      _populateFields(widget.hotel!);
+    } else if (widget.hotelId != null) {
+      _loadHotelForEdit();
+    } else {
+      _setDefaultValues();
+    }
+  }
+
+  Future<void> _loadHotelForEdit() async {
+    if (widget.hotelId == null) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+    
+    try {
+      final hotel = await _hotelService.getHotelById(widget.hotelId!);
+      if (hotel != null) {
+        _populateFields(hotel);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في تحميل بيانات الفندق: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+   }
+
+  void _setDefaultValues() {
+    // Set default values for new hotel
+    _checkInController.text = '14:00';
+    _checkOutController.text = '12:00';
+  }
+
+  void _populateFields(Hotel hotel) {
+    _nameController.text = hotel.name;
+    _descriptionController.text = hotel.description;
+    _addressController.text = hotel.address;
+    _cityController.text = hotel.city ?? '';
+    _wilayaController.text = hotel.wilaya;
+    _postalCodeController.text = hotel.postalCode ?? '';
+    _phoneController.text = hotel.phone;
+    _emailController.text = hotel.email ?? '';
+    _websiteController.text = hotel.website ?? '';
+    _latitudeController.text = hotel.latitude.toString();
+    _longitudeController.text = hotel.longitude.toString();
+    _priceMinController.text = hotel.priceRangeMin?.toString() ?? '';
+    _priceMaxController.text = hotel.priceRangeMax?.toString() ?? '';
+    _coverImageUrl = hotel.imageUrl;
+    _starRating = hotel.starRating ?? 3;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _addressController.dispose();
+    _cityController.dispose();
+    _wilayaController.dispose();
+    _postalCodeController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _websiteController.dispose();
+    _priceRangeController.dispose();
+    _priceMinController.dispose();
+    _priceMaxController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    _checkInController.dispose();
+    _checkOutController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImages() async {
+    final ImagePicker picker = ImagePicker();
+    final List<XFile> images = await picker.pickMultiImage();
+    
+    if (images.isNotEmpty) {
+      setState(() {
+        _selectedImages = images;
+      });
+    }
+  }
+
+  Future<void> _saveHotel() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Upload images first if any selected
+      String? uploadedImageUrl;
+      if (_selectedImages.isNotEmpty) {
+        uploadedImageUrl = await ImageUploadService.uploadImage(
+          _selectedImages.first,
+          'hotel-images',
+        );
+      }
+
+      Hotel savedHotel;
+      if (widget.hotel == null) {
+        // Create new hotel
+        final newHotel = Hotel(
+          id: '', // Will be generated by database
+          name: _nameController.text,
+          description: _descriptionController.text,
+          address: _addressController.text,
+          city: _cityController.text.isEmpty ? null : _cityController.text,
+          wilaya: _wilayaController.text,
+          postalCode: _postalCodeController.text.isEmpty ? null : _postalCodeController.text,
+          phone: _phoneController.text,
+          email: _emailController.text.isEmpty ? null : _emailController.text,
+          website: _websiteController.text.isEmpty ? null : _websiteController.text,
+          latitude: double.tryParse(_latitudeController.text) ?? 0.0,
+          longitude: double.tryParse(_longitudeController.text) ?? 0.0,
+          rating: 0.0,
+          reviewCount: 0,
+          imageUrl: uploadedImageUrl ?? _coverImageUrl,
+          starRating: _starRating,
+          priceRangeMin: double.tryParse(_priceMinController.text),
+          priceRangeMax: double.tryParse(_priceMaxController.text),
+          ownerId: '', // Will be set by service
+          isActive: true,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+        
+        savedHotel = await _hotelService.addHotel(newHotel);
+      } else {
+        // Update existing hotel
+        final updates = {
+          'name': _nameController.text,
+          'description': _descriptionController.text,
+          'address': _addressController.text,
+          'city': _cityController.text.isEmpty ? null : _cityController.text,
+          'wilaya': _wilayaController.text,
+          'postal_code': _postalCodeController.text.isEmpty ? null : _postalCodeController.text,
+          'phone': _phoneController.text,
+          'email': _emailController.text.isEmpty ? null : _emailController.text,
+          'website': _websiteController.text.isEmpty ? null : _websiteController.text,
+          'latitude': double.tryParse(_latitudeController.text) ?? 0.0,
+          'longitude': double.tryParse(_longitudeController.text) ?? 0.0,
+          'star_rating': _starRating,
+          'price_range_min': double.tryParse(_priceMinController.text),
+          'price_range_max': double.tryParse(_priceMaxController.text),
+          if (uploadedImageUrl != null) 'cover_image': uploadedImageUrl,
+        };
+        
+        savedHotel = await _hotelService.updateHotel(widget.hotel!.id, updates);
+      }
+
+      // Upload additional images if any
+      if (_selectedImages.length > 1) {
+        for (int i = 1; i < _selectedImages.length; i++) {
+          final imageUrl = await ImageUploadService.uploadImage(
+            _selectedImages[i],
+            'hotel-images',
+          );
+          
+          // Add hotel image record only if upload was successful
+          if (imageUrl != null) {
+            final hotelImage = HotelImage(
+              id: '',
+              hotelId: savedHotel.id,
+              imageUrl: imageUrl,
+              imageType: 'general',
+              displayOrder: i,
+              createdAt: DateTime.now(),
+            );
+            
+            await _hotelService.addHotelImage(hotelImage);
+          }
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.hotel == null ? 'تم إضافة الفندق بنجاح' : 'تم تحديث الفندق بنجاح'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في حفظ الفندق: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteHotel() async {
+    if (widget.hotel == null) return;
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: const Text('هل أنت متأكد من حذف هذا الفندق؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        setState(() {
+          _isLoading = true;
+        });
+        
+        await _hotelService.deleteHotel(widget.hotel!.id);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم حذف الفندق بنجاح'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          context.pop();
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('خطأ في حذف الفندق: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) {
+        if (!didPop) {
+          context.pop();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.hotel == null ? 'إضافة فندق جديد' : 'تعديل الفندق'),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
+          ),
+          actions: widget.hotel != null ? [
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _deleteHotel,
+              tooltip: 'حذف الفندق',
+            ),
+          ] : null,
+        ),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Basic Information Section
+              _buildSectionTitle('المعلومات الأساسية'),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _nameController,
+                label: 'اسم الفندق',
+                icon: Icons.hotel,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال اسم الفندق';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _descriptionController,
+                label: 'وصف الفندق',
+                icon: Icons.description,
+                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال وصف الفندق';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 24),
+              
+              // Location Section
+              _buildSectionTitle('معلومات الموقع'),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _addressController,
+                label: 'العنوان',
+                icon: Icons.location_on,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال العنوان';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _cityController,
+                      label: 'المدينة',
+                      icon: Icons.location_city,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _wilayaController,
+                      label: 'الولاية',
+                      icon: Icons.map,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'يرجى إدخال الولاية';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _postalCodeController,
+                label: 'الرمز البريدي (اختياري)',
+                icon: Icons.local_post_office,
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _latitudeController,
+                      label: 'خط العرض',
+                      icon: Icons.my_location,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _longitudeController,
+                      label: 'خط الطول',
+                      icon: Icons.my_location,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Contact Information Section
+              _buildSectionTitle('معلومات الاتصال'),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _phoneController,
+                label: 'رقم الهاتف',
+                icon: Icons.phone,
+                keyboardType: TextInputType.phone,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'يرجى إدخال رقم الهاتف';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _emailController,
+                label: 'البريد الإلكتروني (اختياري)',
+                icon: Icons.email,
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              
+              _buildTextField(
+                controller: _websiteController,
+                label: 'الموقع الإلكتروني (اختياري)',
+                icon: Icons.web,
+                keyboardType: TextInputType.url,
+              ),
+              const SizedBox(height: 24),
+              
+              // Hotel Details Section
+              _buildSectionTitle('تفاصيل الفندق'),
+              const SizedBox(height: 16),
+              
+              // Star Rating
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'تصنيف الفندق (نجوم)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: List.generate(5, (index) {
+                          return IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _starRating = index + 1;
+                              });
+                            },
+                            icon: Icon(
+                              index < _starRating ? Icons.star : Icons.star_border,
+                              color: Colors.amber,
+                              size: 32,
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _priceMinController,
+                      label: 'أقل سعر (دج)',
+                      icon: Icons.attach_money,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _priceMaxController,
+                      label: 'أعلى سعر (دج)',
+                      icon: Icons.attach_money,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _checkInController,
+                      label: 'وقت تسجيل الدخول',
+                      icon: Icons.access_time,
+                      readOnly: true,
+                      onTap: () => _selectTime(context, _checkInController),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _checkOutController,
+                      label: 'وقت تسجيل الخروج',
+                      icon: Icons.access_time,
+                      readOnly: true,
+                      onTap: () => _selectTime(context, _checkOutController),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              
+              // Images Section
+              _buildSectionTitle('صور الفندق'),
+              const SizedBox(height: 16),
+              
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      if (_selectedImages.isNotEmpty)
+                        SizedBox(
+                          height: 120,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _selectedImages.length,
+                            itemBuilder: (context, index) {
+                              return Container(
+                                width: 120,
+                                margin: const EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.grey[300]!),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                    File(_selectedImages[index].path),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey[200],
+                        child: const Icon(
+                          Icons.image,
+                          size: 40,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _pickImages,
+                        icon: const Icon(Icons.add_photo_alternate),
+                        label: Text(_selectedImages.isEmpty ? 'اختيار صور' : 'تغيير الصور'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+              
+              // Save Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _saveHotel,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text(
+                          widget.hotel == null ? 'إضافة الفندق' : 'حفظ التغييرات',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+       ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+        color: Colors.blue,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    bool readOnly = false,
+    VoidCallback? onTap,
+  }) {
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      readOnly: readOnly,
+      onTap: onTap,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: Colors.blue),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectTime(BuildContext context, TextEditingController controller) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      controller.text = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+    }
+  }
+}

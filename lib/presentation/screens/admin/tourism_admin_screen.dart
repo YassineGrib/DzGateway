@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../models/tourist_area_model.dart';
 import '../../../services/tourism_service.dart';
 import '../../../services/admin_service.dart';
@@ -112,6 +113,10 @@ class _TourismAdminScreenState extends State<TourismAdminScreen> {
         backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/admin/dashboard'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -191,7 +196,7 @@ class _TourismAdminScreenState extends State<TourismAdminScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showAddEditAreaDialog();
+          context.go('/admin/tourist-areas/add');
         },
         backgroundColor: Colors.green.shade600,
         child: const Icon(Icons.add, color: Colors.white),
@@ -291,7 +296,7 @@ class _TourismAdminScreenState extends State<TourismAdminScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _showAddEditAreaDialog(area: area);
+                      context.go('/admin/tourist-areas/edit/${area.id}');
                     } else if (value == 'delete') {
                       _deleteArea(area.id);
                     }

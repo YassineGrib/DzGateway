@@ -215,7 +215,7 @@ class _AddDeliveryCompanyScreenState extends State<AddDeliveryCompanyScreen> {
       }
 
       if (mounted) {
-        context.pop();
+        context.go('/admin/delivery-companies');
       }
     } catch (e) {
       if (mounted) {

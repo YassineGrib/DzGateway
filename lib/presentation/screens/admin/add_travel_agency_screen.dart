@@ -205,7 +205,7 @@ class _AddTravelAgencyScreenState extends State<AddTravelAgencyScreen> {
       }
 
       if (mounted) {
-        context.pop();
+        context.go('/admin/travel-agencies');
       }
     } catch (e) {
       if (mounted) {

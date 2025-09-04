@@ -3,7 +3,9 @@ class Hotel {
   final String name;
   final String description;
   final String address;
+  final String? city;
   final String wilaya;
+  final String? postalCode;
   final String phone;
   final String? email;
   final String? website;
@@ -12,6 +14,9 @@ class Hotel {
   final double rating;
   final int reviewCount;
   final String? imageUrl;
+  final int? starRating;
+  final double? priceRangeMin;
+  final double? priceRangeMax;
   final String ownerId;
   final bool isActive;
   final DateTime createdAt;
@@ -22,7 +27,9 @@ class Hotel {
     required this.name,
     required this.description,
     required this.address,
+    this.city,
     required this.wilaya,
+    this.postalCode,
     required this.phone,
     this.email,
     this.website,
@@ -31,6 +38,9 @@ class Hotel {
     required this.rating,
     required this.reviewCount,
     this.imageUrl,
+    this.starRating,
+    this.priceRangeMin,
+    this.priceRangeMax,
     required this.ownerId,
     required this.isActive,
     required this.createdAt,
@@ -43,15 +53,20 @@ class Hotel {
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       address: json['address'] ?? '',
+      city: json['city'],
       wilaya: json['wilaya'] ?? '',
+      postalCode: json['postal_code'],
       phone: json['phone'] ?? '',
       email: json['email'],
       website: json['website'],
       latitude: (json['latitude'] ?? 0.0).toDouble(),
       longitude: (json['longitude'] ?? 0.0).toDouble(),
       rating: (json['rating'] ?? 0.0).toDouble(),
-      reviewCount: json['review_count'] ?? 0,
+      reviewCount: json['total_reviews'] ?? 0,
       imageUrl: json['cover_image'],
+      starRating: json['star_rating'],
+      priceRangeMin: json['price_range_min']?.toDouble(),
+      priceRangeMax: json['price_range_max']?.toDouble(),
       ownerId: json['owner_id'] ?? '',
       isActive: json['is_active'] ?? true,
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
@@ -65,15 +80,20 @@ class Hotel {
       'name': name,
       'description': description,
       'address': address,
+      'city': city,
       'wilaya': wilaya,
+      'postal_code': postalCode,
       'phone': phone,
       'email': email,
       'website': website,
       'latitude': latitude,
       'longitude': longitude,
       'rating': rating,
-      'review_count': reviewCount,
+      'total_reviews': reviewCount,
       'cover_image': imageUrl,
+      'star_rating': starRating,
+      'price_range_min': priceRangeMin,
+      'price_range_max': priceRangeMax,
       'owner_id': ownerId,
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
@@ -87,7 +107,7 @@ class Hotel {
   String get displayStars => starRating != null ? '★' * starRating! : '';
   bool get hasCoverImage => imageUrl != null && imageUrl!.isNotEmpty;
   String? get coverImage => imageUrl;
-  int? get starRating => rating >= 4.5 ? 5 : rating >= 3.5 ? 4 : rating >= 2.5 ? 3 : rating >= 1.5 ? 2 : rating >= 0.5 ? 1 : null;
+
   String get displayPriceRange => 'من 5000 دج - 15000 دج';
 }
 

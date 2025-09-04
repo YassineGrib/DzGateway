@@ -78,8 +78,7 @@ class _TransportAdminScreenState extends State<TransportAdminScreen> {
 
     if (confirmed == true) {
       try {
-        // Note: You'll need to implement deleteTransportCompany in TransportService
-        // await TransportService.deleteTransportCompany(companyId);
+        await TransportService().deleteTransportCompany(companyId);
         await _loadCompanies();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -113,6 +112,10 @@ class _TransportAdminScreenState extends State<TransportAdminScreen> {
         backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/admin/dashboard'),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),

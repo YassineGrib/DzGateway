@@ -221,7 +221,7 @@ class _AddTransportCompanyScreenState extends State<AddTransportCompanyScreen> {
       }
 
       if (mounted) {
-        context.pop();
+        context.go('/admin/transport-companies');
       }
     } catch (e) {
       if (mounted) {

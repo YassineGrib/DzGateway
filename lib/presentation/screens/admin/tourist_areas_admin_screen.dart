@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../../models/hotel_model.dart';
-import '../../../services/hotel_service.dart';
-import '../../../services/admin_service.dart';
+import '../../../models/tourist_area_model.dart';
+import '../../../services/tourism_service.dart';
 
-class HotelsAdminScreen extends StatefulWidget {
-  const HotelsAdminScreen({super.key});
+class TouristAreasAdminScreen extends StatefulWidget {
+  const TouristAreasAdminScreen({super.key});
 
   @override
-  State<HotelsAdminScreen> createState() => _HotelsAdminScreenState();
+  State<TouristAreasAdminScreen> createState() => _TouristAreasAdminScreenState();
 }
 
-class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
-  List<Hotel> _hotels = [];
+class _TouristAreasAdminScreenState extends State<TouristAreasAdminScreen> {
+  List<TouristArea> _areas = [];
   bool _isLoading = true;
   String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
-    _loadHotels();
+    _loadAreas();
   }
 
-  Future<void> _loadHotels() async {
+  Future<void> _loadAreas() async {
     try {
-      final hotels = await HotelService().getAllHotels();
+      final areas = await TourismService().getAllTouristAreas();
       setState(() {
-        _hotels = hotels;
+        _areas = areas;
         _isLoading = false;
       });
     } catch (e) {
@@ -36,7 +35,7 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في تحميل الفنادق: ${e.toString()}'),
+            content: Text('خطأ في تحميل المناطق السياحية: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -44,23 +43,24 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
     }
   }
 
-  List<Hotel> get _filteredHotels {
+  List<TouristArea> get _filteredAreas {
     if (_searchQuery.isEmpty) {
-      return _hotels;
+      return _areas;
     }
-    return _hotels.where((hotel) {
-      return hotel.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          hotel.address.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          hotel.wilaya.toLowerCase().contains(_searchQuery.toLowerCase());
+    return _areas.where((area) {
+      return area.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (area.description?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+          (area.wilaya?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+          (area.areaType?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
     }).toList();
   }
 
-  Future<void> _deleteHotel(String hotelId) async {
+  Future<void> _deleteArea(String areaId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد من حذف هذا الفندق؟'),
+        content: const Text('هل أنت متأكد من حذف هذه المنطقة السياحية؟'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -77,13 +77,12 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
 
     if (confirmed == true) {
       try {
-        // Note: You'll need to implement deleteHotel in HotelService
-        // await HotelService.deleteHotel(hotelId);
-        await _loadHotels();
+        await TourismService().deleteTouristArea(areaId);
+        await _loadAreas();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('تم حذف الفندق بنجاح'),
+              content: Text('تم حذف المنطقة السياحية بنجاح'),
               backgroundColor: Colors.green,
             ),
           );
@@ -92,7 +91,7 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('خطأ في حذف الفندق: ${e.toString()}'),
+              content: Text('خطأ في حذف المنطقة السياحية: ${e.toString()}'),
               backgroundColor: Colors.red,
             ),
           );
@@ -106,20 +105,16 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'إدارة الفنادق',
+          'إدارة المناطق السياحية',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.purple.shade600,
+        backgroundColor: Colors.green.shade600,
         foregroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/admin/dashboard'),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: _loadHotels,
+            onPressed: _loadAreas,
           ),
         ],
       ),
@@ -128,7 +123,7 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
           // Search Bar
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.blue.shade600,
+            color: Colors.green.shade600,
             child: TextField(
               onChanged: (value) {
                 setState(() {
@@ -136,7 +131,7 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'البحث في الفنادق...',
+                hintText: 'البحث في المناطق السياحية...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
@@ -152,24 +147,24 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
             ),
           ),
           
-          // Hotels List
+          // Areas List
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : _filteredHotels.isEmpty
+                : _filteredAreas.isEmpty
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(
-                              Icons.hotel,
+                              Icons.landscape,
                               size: 64,
                               color: Colors.grey[400],
                             ),
                             const SizedBox(height: 16),
                             Text(
                               _searchQuery.isEmpty
-                                  ? 'لا توجد فنادق'
+                                  ? 'لا توجد مناطق سياحية'
                                   : 'لا توجد نتائج للبحث',
                               style: TextStyle(
                                 fontSize: 18,
@@ -180,13 +175,13 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadHotels,
+                        onRefresh: _loadAreas,
                         child: ListView.builder(
                           padding: const EdgeInsets.all(16),
-                          itemCount: _filteredHotels.length,
+                          itemCount: _filteredAreas.length,
                           itemBuilder: (context, index) {
-                            final hotel = _filteredHotels[index];
-                            return _buildHotelCard(hotel);
+                            final area = _filteredAreas[index];
+                            return _buildAreaCard(area);
                           },
                         ),
                       ),
@@ -195,111 +190,58 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push('/admin/hotels/add').then((_) => _loadHotels());
+          context.go('/admin/tourist-areas/add');
         },
-        backgroundColor: Colors.blue.shade600,
+        backgroundColor: Colors.green.shade600,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildHotelCard(Hotel hotel) {
+  Widget _buildAreaCard(TouristArea area) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with name and actions
             Row(
               children: [
-                // Hotel Image
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    width: 60,
-                    height: 60,
-                    color: Colors.blue.shade100,
-                    child: hotel.imageUrl != null
-                        ? Image.network(
-                            hotel.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Icon(
-                                Icons.hotel,
-                                color: Colors.blue.shade600,
-                                size: 30,
-                              );
-                            },
-                          )
-                        : Icon(
-                            Icons.hotel,
-                            color: Colors.blue.shade600,
-                            size: 30,
-                          ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                
-                // Hotel Info
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        hotel.name,
+                        area.name,
                         style: const TextStyle(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          ...List.generate(
-                            hotel.starRating ?? 0,
-                            (index) => Icon(
-                              Icons.star,
-                              size: 16,
-                              color: Colors.amber[600],
-                            ),
+                      if (area.areaType != null) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${hotel.starRating ?? 0} نجوم',
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            area.areaType!,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: Colors.grey[500],
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              '${hotel.address}, ${hotel.wilaya}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[500],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -308,9 +250,9 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     if (value == 'edit') {
-                      context.push('/admin/hotels/edit/${hotel.id}').then((_) => _loadHotels());
+                      context.go('/admin/tourist-areas/edit/${area.id}');
                     } else if (value == 'delete') {
-                      _deleteHotel(hotel.id);
+                      _deleteArea(area.id);
                     }
                   },
                   itemBuilder: (context) => [
@@ -338,28 +280,80 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
                 ),
               ],
             ),
+            
+            if (area.description != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                area.description!,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            
             const SizedBox(height: 12),
             
-            // Hotel Stats
+            // Location info
+            if (area.wilaya != null || area.address != null) ...[
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    size: 16,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      [area.address, area.wilaya]
+                          .where((e) => e != null && e.isNotEmpty)
+                          .join(', '),
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+            
+            // Area Stats
             Row(
               children: [
                 _buildStatChip(
                   Icons.star,
-                  hotel.rating.toString(),
+                  area.rating.toString(),
                   Colors.amber,
                 ),
                 const SizedBox(width: 8),
                 _buildStatChip(
                   Icons.reviews,
-                  '${hotel.totalReviews} تقييم',
+                  '${area.totalReviews} تقييم',
                   Colors.blue,
                 ),
-                const SizedBox(width: 8),
-                _buildStatChip(
-                  Icons.star,
-                  '${hotel.rating.toStringAsFixed(1)} نجوم',
-                  Colors.orange,
-                ),
+                if (area.entryFee != null) ...[
+                  const SizedBox(width: 8),
+                  _buildStatChip(
+                    Icons.attach_money,
+                    '${area.entryFee} دج',
+                    Colors.green,
+                  ),
+                ],
+                if (area.isActive) ...[
+                  const SizedBox(width: 8),
+                  _buildStatChip(
+                    Icons.accessible,
+                    'متاح للجميع',
+                    Colors.purple,
+                  ),
+                ],
               ],
             ),
           ],
@@ -392,5 +386,4 @@ class _HotelsAdminScreenState extends State<HotelsAdminScreen> {
       ),
     );
   }
-
 }
